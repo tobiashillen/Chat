@@ -18,6 +18,8 @@
         "gulp-sass": "^2.0.4",
         "ionic-plugin-keyboard": "^2.2.1",
         "mongodb": "^2.2.26",
+        "node-gcm": "^0.14.6",
+        "phonegap-plugin-push": "^1.10.4",
         "socket.io": "^1.7.4"
     },
     "devDependencies": {
@@ -35,7 +37,10 @@
             "cordova-plugin-statusbar": {},
             "cordova-plugin-whitelist": {},
             "ionic-plugin-keyboard": {},
-            "cordova-plugin-x-toast": {}
+            "cordova-plugin-x-toast": {},
+            "phonegap-plugin-push": {
+                "SENDER_ID": "195920830260"
+            }
         },
         "platforms": [
             "android",

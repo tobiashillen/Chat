@@ -25,6 +25,7 @@
 }
 .input-field-container {
     background-color: white;
+    border-radius: 0.3rem;
 }
 form {
     background-color: #ebe9ce;
@@ -92,8 +93,12 @@ form {
   resize: none;
 }
 .markedroom {
-  background-color: #DDDDFF;
-  color: #595959;
+  background-color: #7c6273;
+  border-color: #52414C;
+  color: #ccddcc;
+}
+.back-button {
+  color: #ccddcc !important;
 }
 /*Disabling platform specific tweaks */
 .platform-ios.platform-cordova:not(.fullscreen) .bar-header {
@@ -136,7 +141,12 @@ ion-nav-view {
   text-decoration: none;
 }
 #settings-page {
+  background-color: #796070;
+}
+.item-divider {
   background-color: #52414C;
+  border-color: #67525f;
+  color: #ccddcc;
 }
 .full-image {
   border: 1px solid #ccddcc;
@@ -169,4 +179,5 @@ ion-nav-view {
   margin-top: -0.5rem;
   height: 2rem;
   font-size: 1.5rem;
+  color: #ccddcc;
 }

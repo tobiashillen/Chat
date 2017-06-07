@@ -9,7 +9,7 @@ $calm:                            #11c1f3 !default;
 $balanced:                        #33cd5f !default;
 $energized:                       #ffc900 !default;
 $assertive:                       #ef473a !default;
-$royal:                           #886aea !default;
+$royal:                           #52414C !default;
 $dark:                            #444 !default;
 $shutapp:                         #52414C !default;
 
@@ -220,10 +220,16 @@ $bar-energized-active-bg:         $button-energized-active-bg !default;
 $bar-energized-active-border:     $button-energized-active-border !default;
 
 $bar-royal-bg:                    rgba($button-royal-bg, $bar-transparency) !default;
-$bar-royal-text:                  $button-royal-text !default;
+$bar-royal-text:                  #ccddcc !default;
 $bar-royal-border:                $button-royal-border !default;
 $bar-royal-active-bg:             $button-royal-active-bg !default;
 $bar-royal-active-border:         $button-royal-active-border !default;
+
+$bar-shutapp-bg:                    rgba($button-shutapp-bg, $bar-transparency) !default;
+$bar-shutapp-text:                  $button-shutapp-text !default;
+$bar-shutapp-border:                $button-shutapp-border !default;
+$bar-shutapp-active-bg:             $button-shutapp-active-bg !default;
+$bar-shutapp-active-border:         $button-shutapp-active-border !default;
 
 $bar-dark-bg:                     rgba($button-dark-bg, $bar-transparency) !default;
 $bar-dark-text:                   $button-dark-text !default;
