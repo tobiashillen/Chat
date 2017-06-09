@@ -150,6 +150,23 @@ app.post('/chatrooms/add', function(req, res) {
   })
 });
 
+app.get('/searchUserMessages', function(req, res) {
+    var userName = req.query.userName;
+    db.collection('chatMessages').find({"senderName": userName}).toArray(function(err, result) {
+        //TODO: loopa igenom result för att plocka ut timestamp och text och skicka till clienten
+		var newResult = [];
+		for(i = 0; i < result.length; i++) {
+			var newObject = { timestamp : result[i].timestamp,
+				 				text: result[i].text};
+			newResult.push(newObject);						
+		}
+        if(err) {
+            res.status(500).send({});
+        }
+        res.status(200).send(newResult);
+    });
+});
+
 app.post('/private-messages', function(req, res) {
     var newPrivateMessage = req.body;
     newPrivateMessage.timestamp = new Date();
