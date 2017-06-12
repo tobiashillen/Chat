@@ -408,7 +408,6 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
   });
 
   $scope.scrollSideMenuToTop = function() {
-    console.log("Scrolling to top!");
     $ionicScrollDelegate.$getByHandle('side-menu-handle').scrollTop();
   };
 
