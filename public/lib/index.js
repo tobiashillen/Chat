@@ -20,6 +20,9 @@ lib.factory('userManager', function ($http) {
     userManager.removeDevice = function (deviceObj) {
         return $http.post('http://shutapp.nu:3000/removedevice', deviceObj);
     };
+    userManager.removeUser = function (user) {
+        return $http.post('http://shutapp.nu:3000/users/remove', user);
+    };
     return userManager;
 });
 
