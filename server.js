@@ -279,7 +279,7 @@ app.post('/users/update', function (req, res) {
 app.post('/device', function(req, res) {
     //This is run at login. Add device to database
     db.collection('users').update({"_id": ObjectID(req.body.id)}, {$addToSet: {"devices": req.body.token}}).then(function(doc) {
-        console.log("registered a device");
+        console.log("registered a device: " +  req.body.token);
     });
 });
 
@@ -324,19 +324,44 @@ io.on('connection', function(socket){
         console.log(socket.username + " has connected.");
         var isInList = false;
         for (var i = 0; i < activeUsers.length; i++)  {
-            if (user.id == activeUsers[i].id) isInList = true;
+            if (user.id == activeUsers[i].id) {
+                isInList = true;
+                activeUsers[i].isIdle = false;
+            }
         }
-        if (!isInList) activeUsers.push({ name: socket.username, id: user.id, socketId: socket.id });
+        if (!isInList) activeUsers.push({ name: socket.username, id: user.id, socketId: socket.id, isIdle: false });
         console.log("Active users: ", activeUsers);
         io.emit('active users', activeUsers);
     });
+    socket.on('go idle', function(user) {
+        console.log("going idle");
+        var index = activeUsers.findIndex(function(activeUser) {
+            return activeUser.id === user.id;
+        });
+        if(index >= 0) {
+            activeUsers[index].isIdle = true;
+            io.emit('active users', activeUsers);
+        }
+    });
+    /*
+    socket.on('go active', function(user) {
+        console.log("going active");
+        var index = activeUsers.findIndex(function(activeUser) {
+            return activeUser.id === user.id;
+        });
+        if(index >= 0) {
+            activeUsers[index].isIdle = false;
+            io.emit('active users', activeUsers);
+        }
+    });
+    */
     socket.on('private message', function(message){
         message.timestamp = new Date();
         //Gets correct socketId for recipient.
         var index = activeUsers.findIndex(function(activeUser) {
             return activeUser.id === message.recipientId;
         });
-        if(index >= 0) {
+        if(index >= 0 && !activeUsers[index].isIdle) {
             //Send to the other person
             socket.to(activeUsers[index].socketId).emit('private message', message);
         } else {
@@ -374,6 +399,7 @@ io.on('connection', function(socket){
         io.emit('disconnect message', message);
     });
     socket.on('disconnect', function() {
+        console.log("disconnecting");
         if (activeUsers.findIndex(function(obj) {return obj.name === socket.username;}) != -1) {
             activeUsers.splice(activeUsers.findIndex(function(obj) {
                 console.log(socket.username + " has disconnected.");
