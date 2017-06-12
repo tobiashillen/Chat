@@ -48,7 +48,7 @@ app.run(function($ionicPlatform, $rootScope, $ionicPopup, $state) {
 app.value('messageAudio', new Audio('sounds/meow.mp3'));
 
 app.factory('mySocket', function(socketFactory) {
-  var myIoSocket = io.connect('http://shutapp.nu:3000');
+  var myIoSocket = io.connect('http://192.168.1.123:3000');
   socket = socketFactory({
     ioSocket: myIoSocket
   });
@@ -67,6 +67,22 @@ app.factory('autoLoginManager', function($localStorage) {
       return $localStorage.currentUser;
     }
   };
+});
+
+app.factory('stateHandler', function(mySocket, $rootScope, $timeout) {
+  var promise;
+  return {
+    goIdle: function() {
+      mySocket.emit('go idle', $rootScope.user);
+      //disconnect after 30 seconds away from the app
+      promise = $timeout(mySocket.disconnect, 30*1000);
+    },
+    goActive: function() {
+      $timeout.cancel(promise);
+      mySocket.connect();
+      mySocket.emit('connected', $rootScope.user);
+    }
+  }
 });
 
 app.factory('toaster', function($cordovaToast) {
@@ -219,8 +235,12 @@ app.controller('SignupController', function ($location, $scope, $rootScope, user
   };
 });
 
-app.controller('MessagesController', function ($rootScope, $scope, $location, $ionicPush, $ionicScrollDelegate, $ionicSideMenuDelegate, toaster, messageManager, mySocket, userManager, messageAudio) {
+app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatform, $location, $ionicPush, $ionicScrollDelegate, $ionicSideMenuDelegate, stateHandler, toaster, messageManager, mySocket, userManager, messageAudio) {
   mySocket.removeAllListeners();
+
+  $ionicPlatform.on('pause', stateHandler.goIdle);
+  $ionicPlatform.on('resume', stateHandler.goActive);
+  $ionicPlatform.on('deviceready', stateHandler.goActive);
 
   $scope.$on("keyboardShowHideEvent", function() {
     $ionicScrollDelegate.scrollBottom();
@@ -527,6 +547,7 @@ app.controller('SettingsController', function ($location, $scope, $rootScope, us
     var token = $rootScope.user.token;
     userManager.removeDevice({id: userId, token: token});
     $rootScope.user = {};
+    mySocket.disconnect();
     autoLoginManager.removeUser();
     $location.path('/login');
   };

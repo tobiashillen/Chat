@@ -21,7 +21,7 @@
     Aktiva användare
   </div>
   <ion-list>
-    <ion-item ng-repeat="privateRoom in activeUsers track by privateRoom.id" ng-click="changeRecipient(privateRoom)" ng-class="{'my-user': user.id == privateRoom.id, markedroom: selected==privateRoom.id}" menu-close>
+    <ion-item ng-repeat="privateRoom in activeUsers track by privateRoom.id" ng-click="changeRecipient(privateRoom)" ng-class="{'my-user': user.id == privateRoom.id, markedroom: selected==privateRoom.id, 'idle-user': privateRoom.isIdle}" menu-close>
       <i ng-class="{icon: true, 'ion-email': hadConversation(privateRoom.id), 'new-message': newMessages.includes(privateRoom.id)}"></i>
       {{privateRoom.name}}
     </ion-item>
