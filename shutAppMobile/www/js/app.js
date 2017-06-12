@@ -48,7 +48,7 @@ app.run(function($ionicPlatform, $rootScope, $ionicPopup, $state) {
 app.value('messageAudio', new Audio('sounds/meow.mp3'));
 
 app.factory('mySocket', function(socketFactory) {
-  var myIoSocket = io.connect('http://192.168.1.123:3000');
+  var myIoSocket = io.connect('http://shutapp.nu:3000');
   socket = socketFactory({
     ioSocket: myIoSocket
   });
