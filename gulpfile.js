@@ -21,7 +21,7 @@ gulp.task('serve', function() {
     var server = gulpLiveServer.new('server.js');
     server.start();
 
-    gulp.watch(watchedFiles, function (file) {
+    gulp.watch('server.js', function (file) {
         server.start.apply(server);
     });
 });

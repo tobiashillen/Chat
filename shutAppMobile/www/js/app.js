@@ -48,7 +48,7 @@ app.run(function($ionicPlatform, $rootScope, $ionicPopup, $state) {
 app.value('messageAudio', new Audio('sounds/meow.mp3'));
 
 app.factory('mySocket', function(socketFactory) {
-  var myIoSocket = io.connect('http://shutapp.nu:3000');
+  var myIoSocket = io.connect('http://localhost:3000');
   socket = socketFactory({
     ioSocket: myIoSocket
   });
@@ -164,6 +164,7 @@ app.controller('LoginController', function ($rootScope, $scope, $location, userM
                     name: res.data.username,
                     image: res.data.image
                 };
+                if(res.data.admin) $rootScope.user.admin = true;
                 autoLoginManager.addUser($rootScope.user);
                 $location.path(res.data.redirect); //Redirects to /messages.
             }, function (res) {
