@@ -119,6 +119,10 @@ app.get('/conversations', function(req, res) {
     });
 });
 
+app.get('/search-user-messages', function(req, res) {
+   db.collection('chatMessages').find()
+});
+
 app.get('/chatrooms', function(req, res) {
     //find all chatrooms and add these to a list
     db.collection('chatrooms').find().toArray(function (error, result){

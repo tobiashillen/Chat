@@ -476,8 +476,6 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
 	});
   	
   };
-  
-  
 });
 
 app.controller('SettingsController', function ($location, $scope, $rootScope, userManager, toaster, mySocket, autoLoginManager) {
