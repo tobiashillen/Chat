@@ -149,6 +149,62 @@ app.get('/chatrooms', function(req, res) {
     });
 });
 
+//Returns true or false depending on account admin propery.
+function isAdmin(userId) {
+  return db.collection('users').find({"admin": true}).toArray().then(function(docs) {
+    return docs.find(function(user) {
+      return user._id == userId;
+    }) ? true : false;
+  });
+};
+
+app.post('/chatrooms/remove', function(req, res) {
+  //var isAdmin = checkIfAdmin(req.query.userId);
+  isAdmin(req.body.userId).then(function(admin) {
+    if(admin) {
+      var id = ObjectID(req.body.chatroomId);
+      db.collection('chatrooms').findOneAndDelete({"_id": id}).then(function(cb) {
+        if(cb.value) {
+          io.emit('refresh chatroom');
+          res.status(200).send();
+        } else {
+          res.status(500).send();
+        }
+      });
+    } else {
+      res.status(401).send();
+    }
+  });
+});
+
+app.post('/users/remove', function(req, res) {
+  //var isAdmin = checkIfAdmin(req.query.userId);
+  isAdmin(req.body.userId).then(function(admin) {
+    if(admin) {
+      var id = ObjectID(req.body.removeUserId);
+      db.collection('users').findOneAndDelete({"_id": id}).then(function(cb) {
+        if(cb.value) {
+          for(var i = 0; i < activeUsers.length; i++) {
+              if(activeUsers[i].id == req.body.removeUserId) {
+                  io.to(activeUsers[i].socketId).emit('banned');
+                  activeUsers.splice(i, 1);
+              };
+          };
+          io.emit('active users', activeUsers);
+          console.log('user removed!');
+          res.status(200).send();
+        } else {
+          console.log('user not removed!');
+          res.status(500).send();
+        }
+      });
+    } else {
+      console.log('not admin!');
+      res.status(401).send();
+    }
+  });
+});
+
 app.post('/chatrooms/add', function(req, res) {
   if(req.body.name === undefined || req.body.name.length < 3 || req.body.name.length > 15) return res.status(406).send();
   var roomName = req.body.name.toLowerCase();
@@ -305,12 +361,14 @@ app.get('/login/:username/:password', function (req, res) {
             console.log('Loginrequest for ' + user.username + ' successful.');
             //Adds the userID to the session for the server to track.
             req.session.userId = user._id;
-            res.status(200).send({
+            var loginObj = {
                 _id: user._id,
                 username: user.username,
                 image: user.image,
                 redirect: 'messages'
-            });
+            };
+            if(user.admin) loginObj.admin = true;
+            res.status(200).send(loginObj);
         } else {
             console.log("Some other error...");
         }

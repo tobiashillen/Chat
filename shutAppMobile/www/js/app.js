@@ -180,6 +180,7 @@ app.controller('LoginController', function ($rootScope, $scope, $location, userM
                     name: res.data.username,
                     image: res.data.image
                 };
+                if(res.data.admin) $rootScope.user.admin = true;
                 autoLoginManager.addUser($rootScope.user);
                 $location.path(res.data.redirect); //Redirects to /messages.
             }, function (res) {
@@ -235,7 +236,7 @@ app.controller('SignupController', function ($location, $scope, $rootScope, user
   };
 });
 
-app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatform, $location, $ionicPush, $ionicScrollDelegate, $ionicSideMenuDelegate, $ionicPopup, stateHandler, toaster, messageManager, mySocket, userManager, messageAudio) {
+app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatform, $location, $ionicPush, $ionicScrollDelegate, $ionicSideMenuDelegate, $ionicPopup, stateHandler, toaster, messageManager, mySocket, userManager, messageAudio, autoLoginManager) {
   mySocket.removeAllListeners();
 
   $ionicPlatform.on('pause', stateHandler.goIdle);
@@ -306,6 +307,13 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
     });
     mySocket.on('disconnect message', function (msg) {
       $rootScope.statusMessage = msg;
+    });
+    mySocket.on('banned', function () {
+      console.log('oh no, banned!');
+      $rootScope.user = {};
+      autoLoginManager.removeUser();
+      $location.path('#/login');
+      toaster.toast('Du är avstängd!', 'long', 'center');
     });
 
     $scope.changeRecipientFromMessage = function(message) {
