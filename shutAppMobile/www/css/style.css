@@ -92,10 +92,19 @@ form {
   width: 100%;
   resize: none;
 }
+.message-content {
+  display: inline-block;
+}
 .markedroom {
   background-color: #7c6273;
   border-color: #52414C;
   color: #ccddcc;
+}
+.new-message {
+  color: #00FE54;
+}
+.my-user::after {
+  content: ' (du)';
 }
 .back-button {
   color: #ccddcc !important;
@@ -148,9 +157,63 @@ ion-nav-view {
   border-color: #67525f;
   color: #ccddcc;
 }
+.user-image-frame {
+  border: 1px solid #8d8d8d;
+  border-radius: 0.2rem;
+  display: inline-block;
+  vertical-align: top;
+  width: 2.7rem;
+  height: 2.7rem;
+  overflow: hidden;
+}
+.user-image-container {
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+.message-image {
+  display: block;
+  min-width: 100%;
+  min-height: 100%;
+  max-width: 2.7rem;
+  margin: auto;
+  position: absolute;
+  top: -100%;
+  right: -100%;
+  bottom: -100%;
+  left: -100%;
+}
+.full-image-frame {
+  border: 1px solid #8d8d8d;
+  border-radius: 0.2rem;
+  display: inline-block;
+  vertical-align: top;
+  width: 40vw;
+  height: 40vw;
+  overflow: hidden;
+  margin: 0 28% 1rem;
+}
+.full-image-container {
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
 .full-image {
-  border: 1px solid #ccddcc;
-  border-radius: 0.3rem;
+  display: block;
+  min-width: 100%;
+  min-height: 100%;
+  max-width: 10rem;
+  margin: auto;
+  position: absolute;
+  top: -100%;
+  right: -100%;
+  bottom: -100%;
+  left: -100%;
+}
+.ion-camera {
+  position: absolute;
+  bottom: -0.5rem;
+  right: 0rem;
 }
 .settings-username {
   text-align: center;

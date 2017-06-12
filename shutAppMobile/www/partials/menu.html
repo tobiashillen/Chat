@@ -21,8 +21,8 @@
     Aktiva användare
   </div>
   <ion-list>
-    <ion-item ng-repeat="privateRoom in activeUsers track by privateRoom.id" ng-click="changeRecipient(privateRoom.id)" ng-class="{markedroom: selected==privateRoom.id}" menu-close>
-      <i ng-class="{icon: true, 'ion-email': hadConversation(privateRoom.id)}"></i>
+    <ion-item ng-repeat="privateRoom in activeUsers track by privateRoom.id" ng-click="changeRecipient(privateRoom)" ng-class="{'my-user': user.id == privateRoom.id, markedroom: selected==privateRoom.id}" menu-close>
+      <i ng-class="{icon: true, 'ion-email': hadConversation(privateRoom.id), 'new-message': newMessages.includes(privateRoom.id)}"></i>
       {{privateRoom.name}}
     </ion-item>
   </ion-list>
@@ -30,7 +30,8 @@
     Tidigare konversationer
   </div>
   <ion-list>
-    <ion-item ng-repeat="privateRoom in offlineConversations track by privateRoom.id" ng-click="changeRecipient(privateRoom.id)" ng-class="{markedroom: selected==privateRoom.id}" menu-close>
+    <ion-item ng-repeat="privateRoom in offlineConversations track by privateRoom.id" ng-click="changeRecipient(privateRoom)" ng-class="{markedroom: selected==privateRoom.id}" menu-close>
+      <i ng-class="{icon: true, 'ion-email new-message': newMessages.includes(privateRoom.id)}"></i>
       {{privateRoom.name}}
     </ion-item>
   </ion-list>

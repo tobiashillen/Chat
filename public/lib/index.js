@@ -14,6 +14,12 @@ lib.factory('userManager', function ($http) {
     userManager.updateUsername = function (newUsername) {
         return $http.post('http://shutapp.nu:3000/users/update', newUsername);
     };
+    userManager.addDevice = function (deviceObj) {
+        return $http.post('http://shutapp.nu:3000/device', deviceObj);
+    };
+    userManager.removeDevice = function (deviceObj) {
+        return $http.post('http://shutapp.nu:3000/removedevice', deviceObj);
+    };
     return userManager;
 });
 

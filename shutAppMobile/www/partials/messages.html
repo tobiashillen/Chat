@@ -3,8 +3,17 @@
       <div id="chat-messages">
         <p ng-show="noMessages"> Det finns inga meddelanden att visa i denna konversation. </p>
         <div class="chat-message" ng-repeat="message in messages | orderBy:'timestamp' track by $index">
-          <span class="username">{{message.senderName}}</span> <span class="timestamp">{{message.timestamp | date : 'MMM d, HH:mm'}}</span>
-          <div class="message-text" ng-bind-html="message.text | smilies"></div>
+          <div class="user-image-frame">
+            <div class="user-image-container">
+              <img ng-src="{{message.senderImage}}" class="message-image">
+            </div>
+          </div>
+          <div class="message-content">
+            <div class="message-info">
+              <span class="username" ng-click="changeRecipientFromMessage(message)">{{message.senderName}}</span> <span class="timestamp">{{message.timestamp | date : 'MMM d, HH:mm'}}</span>
+            </div>
+            <div class="message-text" ng-bind-html="message.text | smilies"></div>
+          </div>
         </div>
       </div>
     </ion-content>

@@ -7,8 +7,11 @@
     <div class="settings-username">
       <h1>{{user.name}}</h1>
     </div>
-    <div class="item-body">
-      <img class="full-image" src="https://img.devrant.io/devrant/rant/r_88286_ZsK5W.jpg">
+    <div class="full-image-frame">
+      <div class="full-image-container">
+        <img class="full-image" ng-src="{{user.image}}">
+        <i class="button button-icon icon ion-camera"></i>
+      </div>
     </div>
     <div class="item item-input-inset change-username-container">
       <label class="item-input-wrapper">
