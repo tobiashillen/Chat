@@ -6,7 +6,7 @@
 
 var app = angular.module('starter', ['ionic', 'ionic.cloud', 'lib', 'ngSanitize', 'btford.socket-io', 'ngCordova', 'monospaced.elastic', 'angular-smilies', 'ngStorage']);
 
-app.run(function($ionicPlatform, $rootScope) {
+app.run(function($ionicPlatform, $rootScope, $ionicPopup, $state) {
   $ionicPlatform.ready(function() {
     $rootScope.android = ionic.Platform.isAndroid();
     if(window.cordova && window.cordova.plugins.Keyboard) {
@@ -29,6 +29,19 @@ app.run(function($ionicPlatform, $rootScope) {
     function keyboardShowHideHandler(e) {
       $rootScope.$broadcast("keyboardShowHideEvent");
     }
+
+    //If you press the hardware backbutton on android, shows a dialog box
+    //if you are really sure about exiting.
+    $ionicPlatform.registerBackButtonAction(function(event) {
+      if ($state.current.name == 'messages') {
+        $ionicPopup.confirm({
+          title: 'Avsluta ShutApp',
+          template: 'Är du säker på att du vill avsluta?'
+        }).then(function(res) {
+          if (res) ionic.Platform.exitApp();
+        });
+      }
+    }, 100);
   });
 });
 
@@ -236,7 +249,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $location, $i
     }).then(function(t) {
       //alert("Token: " + t.token);
     });
-    /*This is for testing purposes
+    /* Might be needed in the future?
     $scope.$on('cloud:push:notification', function(event, data) {
       var msg = data.message;
       alert(msg.title + ': ' + msg.text);
@@ -392,7 +405,9 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
   });
 
   $scope.hadConversation = function(userId) {
-    return $rootScope.conversations.map(x=>x.id).includes(userId);
+    if($rootScope.conversations) {
+      return $rootScope.conversations.map(x=>x.id).includes(userId);
+    }
   };
 
   $scope.toggleAddChatroom = function() {
