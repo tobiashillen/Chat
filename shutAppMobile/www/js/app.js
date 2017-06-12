@@ -220,7 +220,7 @@ app.controller('SignupController', function ($location, $scope, $rootScope, user
   };
 });
 
-app.controller('MessagesController', function ($rootScope, $scope, $location, $ionicPush, $ionicScrollDelegate, $ionicSideMenuDelegate, toaster, messageManager, mySocket, userManager, messageAudio) {
+app.controller('MessagesController', function ($rootScope, $scope, $location, $ionicPush, $ionicScrollDelegate, $ionicSideMenuDelegate, toaster, messageManager, mySocket, userManager, messageAudio, autoLoginManager) {
   mySocket.removeAllListeners();
 
   $scope.$on("keyboardShowHideEvent", function() {
@@ -287,6 +287,13 @@ app.controller('MessagesController', function ($rootScope, $scope, $location, $i
     });
     mySocket.on('disconnect message', function (msg) {
       $rootScope.statusMessage = msg;
+    });
+    mySocket.on('banned', function () {
+      console.log('oh no, banned!');
+      $rootScope.user = {};
+      autoLoginManager.removeUser();
+      $location.path('#/login');
+      toaster.toast('Du är avstängd!', 'long', 'center');
     });
 
     $scope.changeRecipientFromMessage = function(message) {

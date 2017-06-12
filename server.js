@@ -184,6 +184,13 @@ app.post('/users/remove', function(req, res) {
       var id = ObjectID(req.body.removeUserId);
       db.collection('users').findOneAndDelete({"_id": id}).then(function(cb) {
         if(cb.value) {
+          for(var i = 0; i < activeUsers.length; i++) {
+              if(activeUsers[i].id == req.body.removeUserId) {
+                  io.to(activeUsers[i].socketId).emit('banned');
+                  activeUsers.splice(i, 1);
+              };
+          };
+          io.emit('active users', activeUsers);
           console.log('user removed!');
           res.status(200).send();
         } else {
