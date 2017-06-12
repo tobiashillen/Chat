@@ -346,11 +346,12 @@ app.controller('MessagesController', function ($rootScope, $scope, $location, $i
       mySocket.emit('join chatroom', $rootScope.selectedChatroom);
       $rootScope.messagesBarTitle = "#general";
     }
-
-    messageManager.getMessages($rootScope.selectedChatroom).then(function(res) {
-      $rootScope.messages = res.data;
-      $ionicScrollDelegate.scrollBottom();
-    });
+    if (!$rootScope.isPrivate) {
+      messageManager.getMessages($rootScope.selectedChatroom).then(function(res) {
+        $rootScope.messages = res.data;
+        $ionicScrollDelegate.scrollBottom();
+      });
+    }
 
     $scope.postMessage = function () {
       var newMessage = {
