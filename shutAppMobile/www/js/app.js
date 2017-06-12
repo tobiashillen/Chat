@@ -235,7 +235,7 @@ app.controller('SignupController', function ($location, $scope, $rootScope, user
   };
 });
 
-app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatform, $location, $ionicPush, $ionicScrollDelegate, $ionicSideMenuDelegate, stateHandler, toaster, messageManager, mySocket, userManager, messageAudio) {
+app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatform, $location, $ionicPush, $ionicScrollDelegate, $ionicSideMenuDelegate, $ionicPopup, stateHandler, toaster, messageManager, mySocket, userManager, messageAudio) {
   mySocket.removeAllListeners();
 
   $ionicPlatform.on('pause', stateHandler.goIdle);
@@ -341,6 +341,55 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
         }
         $rootScope.messagesBarTitle = $rootScope.privateRecipient.name;
   };
+
+    $scope.onHold = function(targetUser){
+        if ($rootScope.user.admin) {
+            var popup = $ionicPopup.show({
+                title: 'Vad vill du göra med ' + targetUser.name + '?',
+                scope: $scope,
+                templateUrl: 'partials/editUser.html'
+              });
+
+              //Temp function.
+              $scope.banUser = function(){
+                  console.log("Bann!");
+                  popup.close();
+              }
+
+              $scope.deleteUser = function(){
+                  userManager.removeUser({
+                      "userId": $rootScope.user.id,
+                      "removeUserId": targetUser.id
+                  }).then(function (res) {
+                      if (res.status == 200) {
+                          console.log(targetUser.name + " deleted!");
+                          toaster.toast(targetUser.name + ' är nu bortagen!', 'long', 'bottom');
+                      }
+                  }, function (res) {
+                      switch(res.status) {
+                        case 400:
+                          console.log("User is not authorised to delete users.");
+                          toaster.toast('Du måste vara admin för att ta bort användare.', 'short', 'bottom');
+                          break;
+                        case 500:
+                          console.log("Database error: User not found.");
+                          toaster.toast('Databasfel: Användaren kunde inte raderas.', 'short', 'bottom');
+                          break;
+                        default:
+                          console.log("Unknown error.");
+                          toaster.toast('Okänt fel.', 'short', 'bottom');
+                      }
+                  });
+                  popup.close();
+              }
+
+              $scope.closePopup = function() {
+                  console.log("Admin cancelled user edit.");
+                  popup.close()
+              }
+          }
+      }
+
 
     /*
     //get list of users with which we have had a conversation
