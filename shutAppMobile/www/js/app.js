@@ -224,7 +224,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $location, $i
 
   $scope.$on("keyboardShowHideEvent", function() {
     $ionicScrollDelegate.scrollBottom();
-  })
+  });
 
   $rootScope.$watch('messages', function () {
     if (!$rootScope.messages || $rootScope.messages.length <= 0) {
@@ -403,12 +403,21 @@ app.controller('MessagesController', function ($rootScope, $scope, $location, $i
 app.controller('LeftSideController', function ($rootScope, $location, $timeout, $ionicSideMenuDelegate, $ionicScrollDelegate, $scope, messageManager, mySocket, toaster) {
   $scope.newChatroom = {};
 
+  $scope.$on("keyboardShowHideEvent", function() {
+    $scope.scrollSideMenuToTop();
+  });
+
+  $scope.scrollSideMenuToTop = function() {
+    console.log("Scrolling to top!");
+    $ionicScrollDelegate.$getByHandle('side-menu-handle').scrollTop();
+  };
+
   $timeout(function() {
     $scope.$watch(function () {
       return $ionicSideMenuDelegate.getOpenRatio();
     }, function (ratio) {
-      if (ratio == 0) {
-        $ionicScrollDelegate.$getByHandle('side-menu-handle').scrollTop();
+      if (ratio == 1) {
+        $scope.scrollSideMenuToTop();
       }
     });
   });
