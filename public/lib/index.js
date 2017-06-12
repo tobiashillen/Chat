@@ -46,5 +46,9 @@ lib.factory('messageManager', function ($http) {
     messageManager.postPrivateMessage = function (newPrivateMessage) {
         return $http.post('http://shutapp.nu:3000/private-messages', newPrivateMessage);
     };
+    messageManager.getHistoricMessages = function (user) {
+        return $http.get('http://localhost:3000/searchUserMessages?userName=' + user);
+	};
+    
     return messageManager;
 });
