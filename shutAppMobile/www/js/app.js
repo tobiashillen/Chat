@@ -379,6 +379,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $location, $i
 });
 
 app.controller('LeftSideController', function ($rootScope, $location, $timeout, $ionicSideMenuDelegate, $ionicScrollDelegate, $scope, messageManager, mySocket, toaster) {
+  
   $scope.newChatroom = {};
 
   $timeout(function() {
@@ -463,6 +464,20 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
     console.log("$rootScope.user is undefined, but WHYYY?!?!");
     $location.path("/");
   }
+ 
+  	$rootScope.person = {};
+	
+  	$scope.searchUser = function() {
+		$rootScope.person.name;
+		messageManager.getHistoricMessages($rootScope.person.name).then(function(res) {
+			//$rootScope.historyMessages = res.data;
+			$rootScope.messages = res.data;
+		 	console.log(res.data);
+	});
+  	
+  };
+  
+  
 });
 
 app.controller('SettingsController', function ($location, $scope, $rootScope, userManager, toaster, mySocket, autoLoginManager) {

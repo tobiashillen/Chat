@@ -3,6 +3,8 @@
       <div id="chat-messages">
         <p ng-show="noMessages"> Det finns inga meddelanden att visa i denna konversation. </p>
         <div class="chat-message" ng-repeat="message in messages | orderBy:'timestamp' track by $index">
+			{{historyMessage.timestamp | date : 'MMM d, HH:mm'}}
+			<p>{{historyMessage.text}}</p>
           <div class="user-image-frame">
             <div class="user-image-container">
               <img ng-src="{{message.senderImage}}" class="message-image">
@@ -22,11 +24,14 @@
         <label class="item-input-wrapper line-light-grey nopadtop">
           <textarea onkeyup="limitTextarea(this, 5, 255)" msd-elastic maxlength="255" class="line-light-grey message-input-field" rows="5" type="text" placeholder="Skriv ditt meddelande..." ng-model="text.message">
           </textarea>
+	  	
         </label>
         <div class="divsend">
           <button class="button ion-ios-arrow-forward iconsend" ng-click="isPrivate ? postPrivateMessage() : postMessage()"></button>
         </div>
+	  	
       </div>
+  	
     </div>
-
+  	
 </ion-view>

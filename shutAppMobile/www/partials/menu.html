@@ -18,7 +18,10 @@
     </ion-item>
   </ion-list>
   <div class="item item-divider">
-    Aktiva användare
+    Aktiva användare <input type="text" placeholder="Sök på användare" ng-model="person.name">
+      <button ng-click="searchUser()">
+        sök
+      </button>
   </div>
   <ion-list>
     <ion-item ng-repeat="privateRoom in activeUsers track by privateRoom.id" ng-click="changeRecipient(privateRoom)" ng-class="{'my-user': user.id == privateRoom.id, markedroom: selected==privateRoom.id}" menu-close>
@@ -35,4 +38,7 @@
       {{privateRoom.name}}
     </ion-item>
   </ion-list>
+  <div>
+  	
+  </div>
 </ion-content>
