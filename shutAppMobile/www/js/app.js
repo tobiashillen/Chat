@@ -362,10 +362,14 @@ app.controller('MessagesController', function ($rootScope, $scope, $location, $i
         "chatroom": $rootScope.selectedChatroom
       };
       //Send message to the current chatroom
-      mySocket.emit('chatroom message', newMessage);
-      messageManager.postMessages(newMessage);
-      $scope.text.message = "";
-      $ionicScrollDelegate.scrollBottom();
+      if (newMessage.text != "") {
+        mySocket.emit('chatroom message', newMessage);
+        messageManager.postMessages(newMessage);
+        $scope.text.message = "";
+        $ionicScrollDelegate.scrollBottom();
+      } else {
+        toaster.toast('Du kan inte skicka ett tomt meddelande. ', 'short', 'bottom');
+      }
       return false;
     };
 
@@ -379,11 +383,15 @@ app.controller('MessagesController', function ($rootScope, $scope, $location, $i
         "recipientName": $rootScope.privateRecipient.name
       };
       //Send a direct private message.
-      mySocket.emit('private message', newPrivateMessage);
-      //Post the message to the database
-      messageManager.postPrivateMessage(newPrivateMessage);
-      $scope.text.message = "";
-      $ionicScrollDelegate.scrollBottom();
+      if (newPrivateMessage.text != "") {
+        mySocket.emit('private message', newPrivateMessage);
+        //Post the message to the database
+        messageManager.postPrivateMessage(newPrivateMessage);
+        $scope.text.message = "";
+        $ionicScrollDelegate.scrollBottom();
+      } else {
+        toaster.toast('Du kan inte skicka ett tomt meddelande. ', 'short', 'bottom');
+      }
     };
 
     $rootScope.toggleLeft = function() {
