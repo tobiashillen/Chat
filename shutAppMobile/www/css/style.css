@@ -238,6 +238,13 @@ ion-nav-view {
 .ion-ios-plus-outline {
   float: right;
 }
+.ion-ios-search {
+	float: right;
+	color: #ccddcc;
+    height: 2rem;
+    font-size: 1.5rem;
+	margin-top: -0.5rem;
+}
 .add-channel-button {
   margin-top: -0.5rem;
   height: 2rem;
