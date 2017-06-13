@@ -470,13 +470,15 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
   	$rootScope.person = {};
 	
   	$scope.searchUser = function() {
+		if($rootScope.person.name.$valid) {
+			
+		}
 		$rootScope.person.name;
 		messageManager.getHistoricMessages($rootScope.person.name).then(function(res) {
-			//$rootScope.historyMessages = res.data;
 			$rootScope.messages = res.data;
 		 	console.log(res.data);
-	});
-  	$scope.searchMode = false;
+		});
+		$rootScope.searchMode = false;	
   };
 });
 
