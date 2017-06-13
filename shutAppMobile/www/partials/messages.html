@@ -20,6 +20,12 @@
           </div>
         </div>
       </div>
+      <div ng-show="newMessages.length==1" class="new-messages-alert">
+      Du har ett oläst meddelande.
+      </div>
+      <div ng-show="newMessages.length>1" class="new-messages-alert">
+      Du har olästa meddelanden.
+      </div>
     </ion-content>
     <div keyboard-attach class="list light-grey bottommsg message-input-container">
       <div class="item item-input-inset light-grey message-input">
