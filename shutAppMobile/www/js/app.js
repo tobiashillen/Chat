@@ -497,9 +497,41 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
   }
 });
 
-app.controller('SettingsController', function ($location, $scope, $rootScope, userManager, toaster, mySocket, autoLoginManager) {
+app.controller('SettingsController', function ($location, $scope, $rootScope, $cordovaCamera, userManager, toaster, mySocket, autoLoginManager) {
   $scope.goBackToMessages = function() {
     $location.path("/messages");
+  };
+
+  $scope.takePicture = function() {
+    /*var options = {
+      quality: 80,
+      destinationType: Camera.DestinationType.DATA_URL,
+      sourceType: Camera.PictureSourceType.CAMERA,
+      allowEdit: true,
+      encodingType: Camera.EncodingType.JPEG,
+      targetWidth: 250,
+      targetHeight: 250,
+      popoverOptions: CameraPopoverOptions,
+      saveToPhotoAlbum: false
+    };*/
+    if (navigator.camera) {
+      navigator.camera.getPicture(function(imageData) {
+        $scope.srcImage = "data:image/jpeg;base64,", + imageData;
+        console.log($scope.srcImage);
+      }, function(err) {
+        console.log("Kunde inte spara bilden: " + err);
+      }, { quality: 80, destinationType: Camera.DestinationType.FILE_URI });
+    } else {
+      console.log("navigator.camera is undefined, but whyyy? " + navigator.camera);
+    }
+
+
+    /*$cordovaCamera.getPicture(options).then(function(imageData) {
+      $scope.srcImage = "data:image/jpeg;base64," + imageData;
+      console.log($scope.srcImage);
+    }, function(err) {
+      console.log("Kunde inte spara bilden.");
+    });*/
   };
 
   $scope.changeUsername = function(newUsername) {
