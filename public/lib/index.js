@@ -49,5 +49,8 @@ lib.factory('messageManager', function ($http) {
     messageManager.postPrivateMessage = function (newPrivateMessage) {
         return $http.post('http://shutapp.nu:3000/private-messages', newPrivateMessage);
     };
+    messageManager.updateMessage = function (message) {
+        return $http.post('http://shutapp.nu:3000/messages/update', message);
+    };
     return messageManager;
 });

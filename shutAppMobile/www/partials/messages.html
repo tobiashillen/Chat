@@ -10,9 +10,11 @@
           </div>
           <div class="message-content">
             <div class="message-info">
-              <span class="username" ng-click="changeRecipientFromMessage(message)">{{message.senderName}}</span> <span class="timestamp">{{message.timestamp | date : 'MMM d, HH:mm'}}</span>
+              <span class="username" ng-class="{showAsAdmin: message.admin}" ng-click="changeRecipientFromMessage(message)">{{message.senderName}}</span>
+              <span class="timestamp">{{message.timestamp | date : 'MMM d, HH:mm'}}</span>
+              <span class="edited" ng-show="message.edited">(Edited)</span>
             </div>
-            <div class="message-text" ng-bind-html="message.text | smilies"></div>
+            <div class="message-text" on-hold="holdOnMessage(message)" ng-bind-html="message.text | smilies"></div>
           </div>
         </div>
       </div>

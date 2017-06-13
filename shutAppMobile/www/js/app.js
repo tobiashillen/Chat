@@ -398,6 +398,30 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
           }
       }
 
+      $scope.holdOnMessage = function(message) {
+        if($rootScope.user.id == message.senderId) {
+          $scope.editMessage = {
+            text: message.text
+          };
+
+          var popup = $ionicPopup.show({
+              title: 'Meddelande',
+              scope: $scope,
+              templateUrl: 'partials/editMessage.html'
+            });
+
+          $scope.saveMessage = function() {
+            message.text = $scope.editMessage.text;
+            messageManager.updateMessage(message);
+            popup.close();
+          };
+
+          $scope.cancelMessage = function() {
+            popup.close();
+          };
+        }
+      };
+
 
     /*
     //get list of users with which we have had a conversation
@@ -438,6 +462,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
         "text": $scope.text.message,
         "chatroom": $rootScope.selectedChatroom
       };
+      if($rootScope.user.admin) newMessage.admin = true;
       //Send message to the current chatroom
       if (newMessage.text != "") {
         mySocket.emit('chatroom message', newMessage);
@@ -459,6 +484,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
         "recipientId": $rootScope.privateRecipient.id,
         "recipientName": $rootScope.privateRecipient.name
       };
+      if($rootScope.user.admin) newPrivateMessage.admin = true;
       //Send a direct private message.
       if (newPrivateMessage.text != "") {
         mySocket.emit('private message', newPrivateMessage);
@@ -550,6 +576,11 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
     socket.on('refresh chatroom', function (chatroom) {
       messageManager.getChatrooms().then(function (response) {
         $scope.chatrooms = response.data;
+      });
+    });
+    socket.on('edited message', function() {
+      messageManager.getMessages($rootScope.selectedChatroom).then(function(res) {
+        $rootScope.messages = res.data;
       });
     });
     $scope.changeChatroom = function (index) {

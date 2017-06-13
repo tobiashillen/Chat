@@ -68,6 +68,21 @@ app.post('/messages', function(req, res) {
     });
 });
 
+app.post('/messages/update', function(req, res) {
+    var message = req.body;
+    var chatroom = (message.recipientId) ? 'privateMessages' : 'chatMessages';
+    db.collection(chatroom).updateOne({"_id": ObjectID(message._id)}, { $set: {"text": message.text, "edited": true}}).then(function(cb) {
+      if(cb.result.nModified == 1) {
+        console.log('message updated.');
+        io.to(message.chatroom).emit('edited message');
+        res.status(201).send();
+      } else {
+        console.log('mesage text not changed.');
+        res.status(400).send();
+      }
+    });
+});
+
 app.post('/private-messages', function(req, res) {
     var newPrivateMessage = req.body;
     newPrivateMessage.timestamp = new Date();

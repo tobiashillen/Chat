@@ -37,7 +37,7 @@ form {
   max-width: 78vw;
   word-wrap: break-word;
 }
-.timestamp {
+.timestamp, .edited {
   font-size: 0.7em;
   color: #595959;
 }
@@ -246,4 +246,7 @@ ion-nav-view {
   height: 2rem;
   font-size: 1.5rem;
   color: #ccddcc;
+}
+.showAsAdmin {
+  color: blue;
 }
