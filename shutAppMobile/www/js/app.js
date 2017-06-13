@@ -69,6 +69,22 @@ app.factory('autoLoginManager', function($localStorage) {
   };
 });
 
+app.factory('stateHandler', function(mySocket, $rootScope, $timeout) {
+  var promise;
+  return {
+    goIdle: function() {
+      mySocket.emit('go idle', $rootScope.user);
+      //disconnect after 30 seconds away from the app
+      promise = $timeout(mySocket.disconnect, 30*1000);
+    },
+    goActive: function() {
+      $timeout.cancel(promise);
+      mySocket.connect();
+      mySocket.emit('connected', $rootScope.user);
+    }
+  }
+});
+
 app.factory('toaster', function($cordovaToast) {
   return {
     toast: function(message, duration, location) {
@@ -164,6 +180,7 @@ app.controller('LoginController', function ($rootScope, $scope, $location, userM
                     name: res.data.username,
                     image: res.data.image
                 };
+                if(res.data.admin) $rootScope.user.admin = true;
                 autoLoginManager.addUser($rootScope.user);
                 $location.path(res.data.redirect); //Redirects to /messages.
             }, function (res) {
@@ -219,8 +236,12 @@ app.controller('SignupController', function ($location, $scope, $rootScope, user
   };
 });
 
-app.controller('MessagesController', function ($rootScope, $scope, $location, $ionicPush, $ionicScrollDelegate, $ionicSideMenuDelegate, toaster, messageManager, mySocket, userManager, messageAudio) {
+app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatform, $location, $ionicPush, $ionicScrollDelegate, $ionicSideMenuDelegate, $ionicPopup, stateHandler, toaster, messageManager, mySocket, userManager, messageAudio, autoLoginManager) {
   mySocket.removeAllListeners();
+
+  $ionicPlatform.on('pause', stateHandler.goIdle);
+  $ionicPlatform.on('resume', stateHandler.goActive);
+  $ionicPlatform.on('deviceready', stateHandler.goActive);
 
   $scope.$on("keyboardShowHideEvent", function() {
     $ionicScrollDelegate.scrollBottom();
@@ -287,6 +308,13 @@ app.controller('MessagesController', function ($rootScope, $scope, $location, $i
     mySocket.on('disconnect message', function (msg) {
       $rootScope.statusMessage = msg;
     });
+    mySocket.on('banned', function () {
+      console.log('oh no, banned!');
+      $rootScope.user = {};
+      autoLoginManager.removeUser();
+      $location.path('#/login');
+      toaster.toast('Du är avstängd!', 'long', 'center');
+    });
 
     $scope.changeRecipientFromMessage = function(message) {
         var socketId = $rootScope.activeUsers.filter(function(user) {
@@ -321,6 +349,55 @@ app.controller('MessagesController', function ($rootScope, $scope, $location, $i
         }
         $rootScope.messagesBarTitle = $rootScope.privateRecipient.name;
   };
+
+    $scope.onHold = function(targetUser){
+        if ($rootScope.user.admin) {
+            var popup = $ionicPopup.show({
+                title: 'Vad vill du göra med ' + targetUser.name + '?',
+                scope: $scope,
+                templateUrl: 'partials/editUser.html'
+              });
+
+              //Temp function.
+              $scope.banUser = function(){
+                  console.log("Bann!");
+                  popup.close();
+              }
+
+              $scope.deleteUser = function(){
+                  userManager.removeUser({
+                      "userId": $rootScope.user.id,
+                      "removeUserId": targetUser.id
+                  }).then(function (res) {
+                      if (res.status == 200) {
+                          console.log(targetUser.name + " deleted!");
+                          toaster.toast(targetUser.name + ' är nu bortagen!', 'long', 'bottom');
+                      }
+                  }, function (res) {
+                      switch(res.status) {
+                        case 400:
+                          console.log("User is not authorised to delete users.");
+                          toaster.toast('Du måste vara admin för att ta bort användare.', 'short', 'bottom');
+                          break;
+                        case 500:
+                          console.log("Database error: User not found.");
+                          toaster.toast('Databasfel: Användaren kunde inte raderas.', 'short', 'bottom');
+                          break;
+                        default:
+                          console.log("Unknown error.");
+                          toaster.toast('Okänt fel.', 'short', 'bottom');
+                      }
+                  });
+                  popup.close();
+              }
+
+              $scope.closePopup = function() {
+                  console.log("Admin cancelled user edit.");
+                  popup.close()
+              }
+          }
+      }
+
 
     /*
     //get list of users with which we have had a conversation
@@ -559,6 +636,7 @@ app.controller('SettingsController', function ($location, $scope, $rootScope, $c
     var token = $rootScope.user.token;
     userManager.removeDevice({id: userId, token: token});
     $rootScope.user = {};
+    mySocket.disconnect();
     autoLoginManager.removeUser();
     $location.path('/login');
   };
