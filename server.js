@@ -287,7 +287,7 @@ app.get('/users/:id?', function (req, res) {
     console.log(searchObject);
     db.collection('users').find(searchObject).toArray(function(err, result) {
         if (err) return res.status(500).send(error);
-        var userObject = { "id": result._id, "name": result.username }
+        var userObject = { "id": result._id, "name": result.username };
         res.status(200).send(userObject);
     });
 });
@@ -390,9 +390,27 @@ io.on('connection', function(socket){
         if (!isInList) activeUsers.push({ name: socket.username, id: user.id, socketId: socket.id, isIdle: false });
         console.log("Active users: ", activeUsers);
         io.emit('active users', activeUsers);
+        //Search for unread messages in database
+        db.collection("users").findOne({"_id": ObjectID(user.id)}, {"_id": 0, "lastActive": 1}).then(function(obj) {
+            console.log("user object", obj);
+            db.collection("privateMessages").find({"recipientId": user.id, "timestamp": {$gt: obj.lastActive}}, {"senderId": 1, "_id": 0}).toArray(function(error, result) {
+                var senders = result.map(x=>x.senderId);
+                var uniqueArray = [];
+                for(var i=0; i<senders.length; i++) {
+                    if(senders.indexOf(senders[i]) == i) {
+                        uniqueArray.push(senders[i]);
+                    }
+                }
+                console.log("unique array: ", uniqueArray);
+                socket.emit('unread messages', uniqueArray);
+            });
+        });
+        
     });
     socket.on('go idle', function(user) {
-        console.log("going idle");
+        console.log(user.name + " going idle");
+        //Adding timestamp on user to be able to show unread messages on login
+        db.collection('users').update({"_id": ObjectID(user.id)}, {$set: {"lastActive": new Date()}});
         var index = activeUsers.findIndex(function(activeUser) {
             return activeUser.id === user.id;
         });
@@ -425,15 +443,20 @@ io.on('connection', function(socket){
         } else {
             //Prepare notification
             var pushNotification = new gcm.Message({
-                data: {
-                    "key": "msg"
-                 },
-                 notification: {
-                    "tag": message.senderId,
+                "collapseKey": message.senderId,
+                "data": {
                     "title": "ShutApp",
                     "body": message.senderName + " skriver: " + message.text,
+                    "id": message.senderId,
+                    "name": message.senderName
+                }/*,
+                 "notification": {
+                    "tag": message.senderId,
+                    "title": "ShutApp notification",
+                    "body": "notification: " + message.senderName + " skriver: " + message.text,
                     "sound": "default"
                  }
+                 */
             });
             //get regTokens from database
             db.collection('users').findOne({"_id": ObjectID(message.recipientId)},{"devices": 1}).then(function(obj) {
