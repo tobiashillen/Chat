@@ -103,6 +103,9 @@ form {
 .new-message {
   color: #00FE54;
 }
+.new-messages-alert {
+  background-color: #99FE99;
+}
 .my-user::after {
   content: ' (du)';
 }

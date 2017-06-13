@@ -325,7 +325,6 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
       if($rootScope.isPrivate && $rootScope.newMessages.includes($rootScope.privateRecipient.id)) {
         $rootScope.newMessages.splice($rootScope.newMessages.indexOf($rootScope.privateRecipient.id), 1);
       }
-      alert($rootScope.newMessages);
     });
 
     $scope.changeRecipientFromMessage = function(message) {
@@ -625,6 +624,7 @@ app.controller('SettingsController', function ($location, $scope, $rootScope, us
     $rootScope.user = {};
     $rootScope.selected = undefined;
     $rootScope.selectedChatroom = undefined;
+    $rootScope.conversations = [];
     mySocket.disconnect();
     autoLoginManager.removeUser();
     $location.path('/login');

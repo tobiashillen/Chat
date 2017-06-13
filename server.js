@@ -419,18 +419,6 @@ io.on('connection', function(socket){
             io.emit('active users', activeUsers);
         }
     });
-    /*
-    socket.on('go active', function(user) {
-        console.log("going active");
-        var index = activeUsers.findIndex(function(activeUser) {
-            return activeUser.id === user.id;
-        });
-        if(index >= 0) {
-            activeUsers[index].isIdle = false;
-            io.emit('active users', activeUsers);
-        }
-    });
-    */
     socket.on('private message', function(message){
         message.timestamp = new Date();
         //Gets correct socketId for recipient.

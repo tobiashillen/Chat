@@ -1,5 +1,5 @@
 var lib = angular.module('lib', []);
-var serverUrl = 'http://shutapp.nu:3000';
+var serverUrl = 'http://192.168.1.16:3000';
 
 lib.factory('userManager', function ($http) {
     var userManager = {};
