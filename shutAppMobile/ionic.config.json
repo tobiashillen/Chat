@@ -1,5 +1,8 @@
 {
   "name": "shutAppMobile",
   "app_id": "381a5d8c",
-  "type": "ionic1"
+  "type": "ionic1",
+  "watchPatterns": [
+    "scss/**/*"
+  ]
 }

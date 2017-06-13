@@ -20,6 +20,9 @@ lib.factory('userManager', function ($http) {
     userManager.removeDevice = function (deviceObj) {
         return $http.post('http://shutapp.nu:3000/removedevice', deviceObj);
     };
+    userManager.removeUser = function (user) {
+        return $http.post('http://shutapp.nu:3000/users/remove', user);
+    };
     return userManager;
 });
 
@@ -46,9 +49,14 @@ lib.factory('messageManager', function ($http) {
     messageManager.postPrivateMessage = function (newPrivateMessage) {
         return $http.post('http://shutapp.nu:3000/private-messages', newPrivateMessage);
     };
+
     messageManager.getHistoricMessages = function (user) {
         return $http.get('http://localhost:3000/searchUserMessages?userName=' + user);
 	};
     
+    messageManager.updateMessage = function (message) {
+        return $http.post('http://shutapp.nu:3000/messages/update', message);
+    };
+
     return messageManager;
 });

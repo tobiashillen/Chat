@@ -37,7 +37,7 @@ form {
   max-width: 78vw;
   word-wrap: break-word;
 }
-.timestamp {
+.timestamp, .edited {
   font-size: 0.7em;
   color: #595959;
 }
@@ -105,6 +105,9 @@ form {
 }
 .my-user::after {
   content: ' (du)';
+}
+.idle-user {
+  color: #8d8d8d;
 }
 .back-button {
   color: #ccddcc !important;
@@ -250,4 +253,7 @@ ion-nav-view {
   height: 2rem;
   font-size: 1.5rem;
   color: #ccddcc;
+}
+.showAsAdmin {
+  color: blue;
 }
