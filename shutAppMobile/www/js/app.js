@@ -470,16 +470,17 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
   	$rootScope.person = {};
 	
   	$scope.searchUser = function() {
-		if($rootScope.person.name.$valid) {
-			
+		if($rootScope.person.name) {
+			$rootScope.person.name;
+			messageManager.getHistoricMessages($rootScope.person.name).then(function(res) {
+				$rootScope.messages = res.data;
+			 	console.log(res.data);
+			});	
+			$scope.searchMode = false;
+		} else {
+			$scope.searchMode = true;
 		}
-		$rootScope.person.name;
-		messageManager.getHistoricMessages($rootScope.person.name).then(function(res) {
-			$rootScope.messages = res.data;
-		 	console.log(res.data);
-		});
-		$rootScope.searchMode = false;	
-  };
+  	};
 });
 
 app.controller('SettingsController', function ($location, $scope, $rootScope, userManager, toaster, mySocket, autoLoginManager) {
