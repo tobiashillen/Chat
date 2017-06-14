@@ -235,7 +235,6 @@ app.post('/chatrooms/add', function(req, res) {
     })
 });
 
-
 app.get('/searchUserMessages', function(req, res) {
     var userName = req.query.userName;
     var result = [];
@@ -246,7 +245,7 @@ app.get('/searchUserMessages', function(req, res) {
             res.status(500).send({});
             return;
         }
-        result.concat(chatMessagesResult);
+        result = result.concat(chatMessagesResult);
     });
     // Find private messages
     db.collection('privateMessages').find({"senderName": userName}, {"timestamp": 1, "text": 1, "senderName": 1, "_id": 0}).toArray(function(err, privateMessagesResult) {
@@ -254,15 +253,12 @@ app.get('/searchUserMessages', function(req, res) {
             res.status(500).send({});
             return;
         }
-        result.concat(privateMessagesResult);
-
+        result = result.concat(privateMessagesResult);
+	
         // Send the search result
         res.status(200).send(result);
     });
 });
-
-
-
 
 app.post('/signup', function(req, res) {
     //all usernames are stored as lowercase for simplicity
