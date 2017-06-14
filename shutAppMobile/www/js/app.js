@@ -481,6 +481,39 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
             }
         };
 
+        $scope.holdOnChatroom = function(chatroom) {
+          if($rootScope.user.admin) {
+            var popup = $ionicPopup.show({
+                title: 'Chatrum ' + chatroom.name,
+                scope: $scope,
+                templateUrl: 'partials/editChatroom.html'
+            });
+
+            $scope.deleteChatroom = function() {
+              messageManager.removeChatroom({"chatroomId": chatroom._id, "userId": $rootScope.user.id}).then(function(res) {
+                switch(res.status) {
+                  case 200:
+                  toaster.toast(chatroom.name + ' togs bort.', 'short', 'bottom');
+                  break;
+                  case 500:
+                  toaster.toast('Databasfel: 500', 'short', 'bottom');
+                  break;
+                  case 401:
+                  toaster.toast('Du måste vara admin för detta.', 'short', 'bottom');
+                  break;
+                  default:
+                  toaster.toast('Okänt fel.', 'short', 'bottom');
+                }
+              });
+              popup.close();
+            };
+
+            $scope.closeChatroomPopup = function() {
+              popup.close();
+            }
+          }
+        }
+
     mySocket.on('change username', function(obj) {
         for(var i=0; i<$rootScope.conversations.length; i++) {
             if($rootScope.conversations[i].id == obj.id) {
@@ -589,9 +622,11 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
     $scope.toggleAddChatroom = function() {
         $scope.addMode = true;
     };
-
+    $scope.showEditChatroom = function() {
+      return $scope.addMode && $rootScope.user.admin;
+    };
     $scope.addChatroom = function() {
-        messageManager.addChatroom({"name": $scope.newChatroom.name}).then(function(res) {
+        messageManager.addChatroom({"name": $scope.newChatroom.name, "user": $rootScope.user}).then(function(res) {
             toaster.toast('Chatrummet ' + $scope.newChatroom.name + ' har skapats.', 'short', 'bottom');
         }, function(res) {
             switch(res.status) {
