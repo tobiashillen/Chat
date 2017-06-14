@@ -35,6 +35,9 @@ lib.factory('messageManager', function ($http) {
     messageManager.addChatroom = function (newChatroom) {
         return $http.post(serverUrl + '/chatrooms/add', newChatroom);
     };
+    messageManager.removeChatroom = function (chatroomId) {
+        return $http.post(serverUrl +  '/chatrooms/remove', chatroomId);
+    };
     messageManager.getMessages = function (chatroomId) {
         return $http.get(serverUrl + '/messages?chatroom=' + chatroomId);
     };

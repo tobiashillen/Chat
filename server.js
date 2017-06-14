@@ -205,8 +205,10 @@ app.post('/chatrooms/remove', function(req, res) {
             db.collection('chatrooms').findOneAndDelete({"_id": id}).then(function(cb) {
                 if(cb.value) {
                     io.emit('refresh chatroom');
+                    console.log('Removed room ' + id);
                     res.status(200).send();
                 } else {
+                    console.log('Faiöed to remove room ' + id);
                     res.status(500).send();
                 }
             });

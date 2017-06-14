@@ -436,6 +436,39 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
             }
         };
 
+        $scope.holdOnChatroom = function(chatroom) {
+          if($rootScope.user.admin) {
+            var popup = $ionicPopup.show({
+                title: 'Chatrum ' + chatroom.name,
+                scope: $scope,
+                templateUrl: 'partials/editChatroom.html'
+            });
+
+            $scope.deleteChatroom = function() {
+              messageManager.removeChatroom({"chatroomId": chatroom._id, "userId": $rootScope.user.id}).then(function(res) {
+                switch(res.status) {
+                  case 200:
+                  toaster.toast(chatroom.name + ' togs bort.', 'short', 'bottom');
+                  break;
+                  case 500:
+                  toaster.toast('Databasfel: 500', 'short', 'bottom');
+                  break;
+                  case 401:
+                  toaster.toast('Du måste vara admin för detta.', 'short', 'bottom');
+                  break;
+                  default:
+                  toaster.toast('Okänt fel.', 'short', 'bottom');
+                }
+              });
+              popup.close();
+            };
+
+            $scope.closeChatroomPopup = function() {
+              popup.close();
+            }
+          }
+        }
+
 
         /*
         //get list of users with which we have had a conversation

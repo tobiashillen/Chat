@@ -13,7 +13,7 @@
     </button>
   </div>
   <ion-list>
-    <ion-item ng-repeat="chatroom in chatrooms" ng-click="changeChatroom(chatroom._id)" ng-class="{markedroom: selected==chatroom._id}" menu-close>
+    <ion-item ng-repeat="chatroom in chatrooms" on-hold="holdOnChatroom(chatroom)" ng-click="changeChatroom(chatroom._id)" ng-class="{markedroom: selected==chatroom._id}" menu-close>
       #{{chatroom.name}}
     </ion-item>
   </ion-list>
