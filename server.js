@@ -234,7 +234,9 @@ app.post('/chatrooms/add', function(req, res) {
               res.status(400).send();
           };
       });
-    };
+    } else {
+      return res.status(406).send();
+    }
 });
 
 
