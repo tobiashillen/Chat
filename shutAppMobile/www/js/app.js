@@ -274,7 +274,6 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
       var msg = data.message;
       var recipient = {id: msg.raw.additionalData.id, name: msg.raw.additionalData.name};
       $rootScope.changeRecipient(recipient);
-      //alert(msg.text + " " + msg.raw.additionalData.id + " " + msg.raw.additionalData.name);
     });
     
     $scope.text = {};
@@ -670,6 +669,7 @@ app.controller('SettingsController', function ($location, $scope, $rootScope, us
     var userId = $rootScope.user.id;
     var token = $rootScope.user.token;
     userManager.removeDevice({id: userId, token: token});
+    mySocket.emit('go idle', $rootScope.user);
     $rootScope.user = {};
     $rootScope.selected = undefined;
     $rootScope.selectedChatroom = undefined;

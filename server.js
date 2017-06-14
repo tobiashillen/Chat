@@ -470,21 +470,19 @@ io.on('connection', function(socket){
             socket.to(activeUsers[index].socketId).emit('private message', message);
         } else {
             //Prepare notification
+            //Testing! making id from name for testing purposes
+            //var notid = [...message.senderId].map(x=>x.charCodeAt(0)).reduce((a,b)=>a+b,0);
+            var notid = parseInt(message.senderId, 16) % 2147483647; //2147483647 is max int in Java
+            console.log("notid: " + notid);
             var pushNotification = new gcm.Message({
                 "collapseKey": message.senderId,
                 "data": {
                     "title": "ShutApp",
                     "body": message.senderName + " skriver: " + message.text,
                     "id": message.senderId,
-                    "name": message.senderName
-                }/*,
-                 "notification": {
-                    "tag": message.senderId,
-                    "title": "ShutApp notification",
-                    "body": "notification: " + message.senderName + " skriver: " + message.text,
-                    "sound": "default"
-                 }
-                 */
+                    "name": message.senderName,
+                    "notId": notid
+                }
             });
             //get regTokens from database
             db.collection('users').findOne({"_id": ObjectID(message.recipientId)},{"devices": 1}).then(function(obj) {
