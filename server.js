@@ -45,6 +45,22 @@ mongo.connect('mongodb://shutapp:shutapp123@ds133981.mlab.com:33981/shutapp', fu
         console.log(err);
     }
     db = database;
+
+    db.collection('users').createIndex(
+        { username: 1 },
+        { unique:true },
+        function(err, result) {
+            //Adds unique index for username.
+        }
+    );
+
+    db.collection('users').createIndex(
+        { email: 1 },
+        { unique:true },
+        function(err, result) {
+            //Adds unique index for email.
+        }
+    );
 });
 
 app.use(session({
@@ -239,60 +255,43 @@ app.post('/chatrooms/add', function(req, res) {
 app.get('/searchUserMessages', function(req, res) {
     var userName = req.query.userName;
     db.collection('chatMessages').find({"senderName": userName}, {"timestamp": 1, "text": 1, "senderName": 1, "_id": 0}).toArray(function(err, result) {
-    if(err) {
-        res.status(500).send({});
-    }
-    res.status(200).send(result);
+        if(err) {
+            res.status(500).send({});
+        }
+        res.status(200).send(result);
+    });
 });
-});
-
-
-
 
 app.post('/signup', function(req, res) {
-    //all usernames are stored as lowercase for simplicity
+    //All usernames are stored as lowercase for simplicity.
     var username = req.body.username.toLowerCase();
     var email = req.body.email.toLowerCase();
     var password = req.body.password;
     if(!email.match(/^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/)
     || !username.match(/[0-9a-zA-Z]{3,20}/)
     || !password.match(/^.{6,50}$/) ) {
-        //400 is "bad request"
-        res.status(400).send({});
+        res.status(400).send({}); //"Bad request"
         return;
     }
-
-    db.collection('users').findOne( { "username": username }, function(err, user) {
-        if(err) {
-            //Server error
-            res.status(500).send(err);
+    //Hashing password and adding user to database.
+    bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
+        if (err) {
+            console.log("Signup-error: Hashing password failed.");
+            res.status(500).send({}); //"Internal server error."
         } else {
-            //if the user does not already exist in the database, create a new user
-            if(user === null) {
-                db.collection('users').findOne( { "email": email }, function(err, user) {
-                    if(err) {
-                        res.status(500).send(err);
-                    } else {
-                        if(user === null) {
-                            //Add user to the database
-                            bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
-                                if (err) {
-                                    console.log(err);
-                                } else {
-                                    db.collection('users').insert({username: username, email: req.body.email, password: hash}).then(function() {
-                                        res.status(201).send({redirect:'/'});
-                                    });
-                                }
-                            });
-                        } else {
-                            res.status(409).send({"reason":"email"});
-                        }
-                    }
-                });
-            } else {
-                //409 means "conflict".
-                res.status(409).send({"reason":"username"});
-            }
+            db.collection('users').insertOne({username: username, email: email, password: hash})
+            .then(function(result) {
+                console.log("Signup successful. Added user: " + username);
+                res.status(201).send({redirect:'/'}); //Must use res-object from post NOT result from db insert.
+            }, function(error) {
+                if (error.errmsg.includes("$email")) {
+                    console.log("Signup-error: Email already in use.");
+                    res.status(409).send({"reason":"email"});
+                } else if (error.errmsg.includes("$username")) {
+                    console.log("Signup-error: Username already in use.");
+                    res.status(409).send({"reason":"username"});
+                }
+            });
         }
     });
 });
