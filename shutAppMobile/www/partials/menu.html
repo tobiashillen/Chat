@@ -18,7 +18,16 @@
     </ion-item>
   </ion-list>
   <div class="item item-divider">
-    Aktiva användare
+	<div ng-hide="searchMode">
+		Aktiva användare
+		<button ng-click="toggleSearchHistory()" class="button-icon ion-ios-search search-button">
+	</div>
+	<div ng-show="searchMode">
+		<input type="text" placeholder="Sök på användare" ng-model="person.name" ng-minlength="3" ng-maxlength="20" required>
+      	<button ng-click="searchUser()">
+			sök
+      	</button>
+	</div>
   </div>
   <ion-list>
     <ion-item ng-repeat="privateRoom in activeUsers track by privateRoom.id" ng-click="changeRecipient(privateRoom)" on-hold="onHold(privateRoom)" ng-class="{'my-user': user.id == privateRoom.id, markedroom: selected==privateRoom.id, 'idle-user': privateRoom.isIdle}" menu-close>
@@ -30,9 +39,14 @@
     Tidigare konversationer
   </div>
   <ion-list>
-    <ion-item ng-repeat="privateRoom in offlineConversations track by privateRoom.id" ng-click="changeRecipient(privateRoom)" ng-class="{markedroom: selected==privateRoom.id}" menu-close>
+    <ion-item ng-repeat="privateRoom in offlineConversations track by privateRoom.id" ng-click="changeRecipient(privateRoom)" on-hold="onHold(privateRoom)" ng-class="{markedroom: selected==privateRoom.id}" menu-close>
       <i ng-class="{icon: true, 'ion-email new-message': newMessages.includes(privateRoom.id)}"></i>
       {{privateRoom.name}}
     </ion-item>
   </ion-list>
+
+  <div>
+
+  </div>
+
 </ion-content>

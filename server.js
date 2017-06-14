@@ -57,7 +57,6 @@ app.use(session({
 app.post('/messages', function(req, res) {
     var newMessage = req.body;
     newMessage.timestamp = new Date();
-    console.log(newMessage);
     db.collection('chatMessages').insert(newMessage).then(function(result) {
         //201 is a "created" status code
         if(result) {
@@ -68,10 +67,24 @@ app.post('/messages', function(req, res) {
     });
 });
 
+app.post('/messages/update', function(req, res) {
+    var message = req.body;
+    var chatroom = (message.recipientId) ? 'privateMessages' : 'chatMessages';
+    db.collection(chatroom).updateOne({"_id": ObjectID(message._id)}, { $set: {"text": message.text, "edited": true}}).then(function(cb) {
+        if(cb.result.nModified == 1) {
+            console.log('message updated.');
+            io.to(message.chatroom).emit('edited message');
+            res.status(201).send();
+        } else {
+            console.log('message text not changed.');
+            res.status(400).send();
+        }
+    });
+});
+
 app.post('/private-messages', function(req, res) {
     var newPrivateMessage = req.body;
     newPrivateMessage.timestamp = new Date();
-    console.log(newPrivateMessage);
     db.collection('privateMessages').insert(newPrivateMessage).then(function(result) {
         //201 is a "created" status code
         if(result) {
@@ -94,7 +107,6 @@ app.get('/messages', function(req, res) {
     }
 
     db.collection(collection).find(findObject).toArray(function(err, result) {
-        //TODO: add error thing
         if(err) {
             res.status(500).send({});
         }
@@ -108,7 +120,7 @@ app.post('/upload', upload.single('avatar'), function (req, res, next) {
     db.collection('users').findOneAndUpdate(
         {"_id": ObjectID(req.body.userid) },
         { $set: {"picturePath": "/uploads/" + createProfilePictureFileName(req.file.originalname, req.body.userid)}
-        }).then(function() {
+    }).then(function() {
         res.status(201).send();
     });
     res.status(200).send();
@@ -137,6 +149,7 @@ app.get('/conversations', function(req, res) {
     });
 });
 
+
 app.get('/chatrooms', function(req, res) {
     //find all chatrooms and add these to a list
     db.collection('chatrooms').find().toArray(function (error, result){
@@ -151,78 +164,90 @@ app.get('/chatrooms', function(req, res) {
 
 //Returns true or false depending on account admin propery.
 function isAdmin(userId) {
-  return db.collection('users').find({"admin": true}).toArray().then(function(docs) {
-    return docs.find(function(user) {
-      return user._id == userId;
-    }) ? true : false;
-  });
+    return db.collection('users').find({"admin": true}).toArray().then(function(docs) {
+        return docs.find(function(user) {
+            return user._id == userId;
+        }) ? true : false;
+    });
 };
 
 app.post('/chatrooms/remove', function(req, res) {
-  //var isAdmin = checkIfAdmin(req.query.userId);
-  isAdmin(req.body.userId).then(function(admin) {
-    if(admin) {
-      var id = ObjectID(req.body.chatroomId);
-      db.collection('chatrooms').findOneAndDelete({"_id": id}).then(function(cb) {
-        if(cb.value) {
-          io.emit('refresh chatroom');
-          res.status(200).send();
+    isAdmin(req.body.userId).then(function(admin) {
+        if(admin) {
+            var id = ObjectID(req.body.chatroomId);
+            db.collection('chatrooms').findOneAndDelete({"_id": id}).then(function(cb) {
+                if(cb.value) {
+                    io.emit('refresh chatroom');
+                    res.status(200).send();
+                } else {
+                    res.status(500).send();
+                }
+            });
         } else {
-          res.status(500).send();
+            res.status(401).send();
         }
-      });
-    } else {
-      res.status(401).send();
-    }
-  });
+    });
 });
 
 app.post('/users/remove', function(req, res) {
-  //var isAdmin = checkIfAdmin(req.query.userId);
-  isAdmin(req.body.userId).then(function(admin) {
-    if(admin) {
-      var id = ObjectID(req.body.removeUserId);
-      db.collection('users').findOneAndDelete({"_id": id}).then(function(cb) {
-        if(cb.value) {
-          for(var i = 0; i < activeUsers.length; i++) {
-              if(activeUsers[i].id == req.body.removeUserId) {
-                  io.to(activeUsers[i].socketId).emit('banned');
-                  activeUsers.splice(i, 1);
-              };
-          };
-          io.emit('active users', activeUsers);
-          console.log('user removed!');
-          res.status(200).send();
+    isAdmin(req.body.userId).then(function(admin) {
+        if(admin) {
+            var id = ObjectID(req.body.removeUserId);
+            db.collection('users').findOneAndDelete({"_id": id}).then(function(cb) {
+                if(cb.value) {
+                    for(var i = 0; i < activeUsers.length; i++) {
+                        if(activeUsers[i].id == req.body.removeUserId) {
+                            io.to(activeUsers[i].socketId).emit('banned');
+                            activeUsers.splice(i, 1);
+                        };
+                    };
+                    io.emit('active users', activeUsers);
+                    console.log('user removed!');
+                    res.status(200).send();
+                } else {
+                    console.log('user not removed!');
+                    res.status(500).send();
+                }
+            });
         } else {
-          console.log('user not removed!');
-          res.status(500).send();
+            console.log('not admin!');
+            res.status(401).send();
         }
-      });
-    } else {
-      console.log('not admin!');
-      res.status(401).send();
-    }
-  });
+    });
 });
 
 app.post('/chatrooms/add', function(req, res) {
-  if(req.body.name === undefined || req.body.name.length < 3 || req.body.name.length > 15) return res.status(406).send();
-  var roomName = req.body.name.toLowerCase();
-  db.collection('chatrooms').count({"name": roomName}).then(function(error, result) {
-    if(!error) {
-      db.collection('chatrooms').insertOne({"name": roomName, "users": []}).then(function(cb) {
-        if(cb.result.ok > 0) {
-          io.emit('refresh chatroom');
-          res.status(201).send();
+    if(req.body.name === undefined || req.body.name.length < 3 || req.body.name.length > 15) return res.status(406).send();
+    var roomName = req.body.name.toLowerCase();
+    db.collection('chatrooms').count({"name": roomName}).then(function(error, result) {
+        if(!error) {
+            db.collection('chatrooms').insertOne({"name": roomName, "users": []}).then(function(cb) {
+                if(cb.result.ok > 0) {
+                    io.emit('refresh chatroom');
+                    res.status(201).send();
+                } else {
+                    res.status(500).send();
+                }
+            });
         } else {
-          res.status(500).send();
-        }
-      });
-    } else {
-      res.status(400).send();
-    };
-  })
+            res.status(400).send();
+        };
+    })
 });
+
+
+app.get('/searchUserMessages', function(req, res) {
+    var userName = req.query.userName;
+    db.collection('chatMessages').find({"senderName": userName}, {"timestamp": 1, "text": 1, "senderName": 1, "_id": 0}).toArray(function(err, result) {
+    if(err) {
+        res.status(500).send({});
+    }
+    res.status(200).send(result);
+});
+});
+
+
+
 
 app.post('/signup', function(req, res) {
     //all usernames are stored as lowercase for simplicity
@@ -230,8 +255,8 @@ app.post('/signup', function(req, res) {
     var email = req.body.email.toLowerCase();
     var password = req.body.password;
     if(!email.match(/^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/)
-        || !username.match(/[0-9a-zA-Z]{3,20}/)
-        || !password.match(/^.{6,50}$/) ) {
+    || !username.match(/[0-9a-zA-Z]{3,20}/)
+    || !password.match(/^.{6,50}$/) ) {
         //400 is "bad request"
         res.status(400).send({});
         return;
@@ -242,7 +267,6 @@ app.post('/signup', function(req, res) {
             //Server error
             res.status(500).send(err);
         } else {
-            console.log(user);
             //if the user does not already exist in the database, create a new user
             if(user === null) {
                 db.collection('users').findOne( { "email": email }, function(err, user) {
@@ -255,7 +279,6 @@ app.post('/signup', function(req, res) {
                                 if (err) {
                                     console.log(err);
                                 } else {
-                                    console.log(hash);
                                     db.collection('users').insert({username: username, email: req.body.email, password: hash}).then(function() {
                                         res.status(201).send({redirect:'/'});
                                     });
@@ -278,18 +301,6 @@ app.get('/logout', function(req, res, next) {
     if(req.session) {
         req.session.destroy();
     }
-});
-
-//GET one or all users. Not finished!
-app.get('/users/:id?', function (req, res) {
-    var searchObject = {};
-    if(req.params.id) searchObject = { "_id": ObjectID(req.params.id) };
-    console.log(searchObject);
-    db.collection('users').find(searchObject).toArray(function(err, result) {
-        if (err) return res.status(500).send(error);
-        var userObject = { "id": result._id, "name": result.username }
-        res.status(200).send(userObject);
-    });
 });
 
 app.post('/users/update', function (req, res) {
@@ -376,7 +387,6 @@ app.get('/login/:username/:password', function (req, res) {
 });
 
 io.on('connection', function(socket){
-    console.log("socket id:", socket.id);
     socket.on('connected', function(user) {
         socket.username = user.name;
         console.log(socket.username + " has connected.");
@@ -388,11 +398,26 @@ io.on('connection', function(socket){
             }
         }
         if (!isInList) activeUsers.push({ name: socket.username, id: user.id, socketId: socket.id, isIdle: false });
-        console.log("Active users: ", activeUsers);
         io.emit('active users', activeUsers);
+        //Search for unread messages in database
+        db.collection("users").findOne({"_id": ObjectID(user.id)}, {"_id": 0, "lastActive": 1}).then(function(obj) {
+            db.collection("privateMessages").find({"recipientId": user.id, "timestamp": {$gt: obj.lastActive}}, {"senderId": 1, "_id": 0}).toArray(function(error, result) {
+                var senders = result.map(x=>x.senderId);
+                var uniqueArray = [];
+                for(var i=0; i<senders.length; i++) {
+                    if(senders.indexOf(senders[i]) == i) {
+                        uniqueArray.push(senders[i]);
+                    }
+                }
+                socket.emit('unread messages', uniqueArray);
+            });
+        });
+
     });
     socket.on('go idle', function(user) {
-        console.log("going idle");
+        console.log(user.name + " going idle");
+        //Adding timestamp on user to be able to show unread messages on login
+        db.collection('users').update({"_id": ObjectID(user.id)}, {$set: {"lastActive": new Date()}});
         var index = activeUsers.findIndex(function(activeUser) {
             return activeUser.id === user.id;
         });
@@ -401,18 +426,6 @@ io.on('connection', function(socket){
             io.emit('active users', activeUsers);
         }
     });
-    /*
-    socket.on('go active', function(user) {
-        console.log("going active");
-        var index = activeUsers.findIndex(function(activeUser) {
-            return activeUser.id === user.id;
-        });
-        if(index >= 0) {
-            activeUsers[index].isIdle = false;
-            io.emit('active users', activeUsers);
-        }
-    });
-    */
     socket.on('private message', function(message){
         message.timestamp = new Date();
         //Gets correct socketId for recipient.
@@ -424,16 +437,16 @@ io.on('connection', function(socket){
             socket.to(activeUsers[index].socketId).emit('private message', message);
         } else {
             //Prepare notification
+            var notid = parseInt(message.senderId, 16) % 2147483647; //2147483647 is max int in Java
             var pushNotification = new gcm.Message({
-                data: {
-                    "key": "msg"
-                 },
-                 notification: {
-                    "tag": message.senderId,
+                "collapseKey": message.senderId,
+                "data": {
                     "title": "ShutApp",
                     "body": message.senderName + " skriver: " + message.text,
-                    "sound": "default"
-                 }
+                    "id": message.senderId,
+                    "name": message.senderName,
+                    "notId": notid
+                }
             });
             //get regTokens from database
             db.collection('users').findOne({"_id": ObjectID(message.recipientId)},{"devices": 1}).then(function(obj) {
@@ -457,7 +470,6 @@ io.on('connection', function(socket){
         io.emit('disconnect message', message);
     });
     socket.on('disconnect', function() {
-        console.log("disconnecting");
         if (activeUsers.findIndex(function(obj) {return obj.name === socket.username;}) != -1) {
             activeUsers.splice(activeUsers.findIndex(function(obj) {
                 console.log(socket.username + " has disconnected.");
@@ -469,13 +481,11 @@ io.on('connection', function(socket){
     });
     socket.on('join chatroom', function(chatroomId) {
         socket.join(chatroomId, function() {
-            console.log("socket.rooms: ", socket.rooms);
+
         });
         socket.emit('join chatroom');
     });
     socket.on('chatroom message', function(message) {
-        //console.log("In server.js", message);
-        //console.log("socket rooms: ", socket.rooms);
         message.timestamp = new Date();
         io.in(message.chatroom).emit('chatroom message', message);
     });
@@ -492,8 +502,6 @@ http.listen(port, function(){
 });
 
 function createProfilePictureFileName(originalFileName, userId){
-    //var originalname = file.originalname;
     var fileExtension = originalFileName.split(".")[1];
-    //var filename = req.body.userid;
     return userId + '.' + fileExtension;
 }

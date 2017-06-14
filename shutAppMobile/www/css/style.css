@@ -37,7 +37,7 @@ form {
   max-width: 78vw;
   word-wrap: break-word;
 }
-.timestamp {
+.timestamp, .edited {
   font-size: 0.7em;
   color: #595959;
 }
@@ -102,6 +102,9 @@ form {
 }
 .new-message {
   color: #00FE54;
+}
+.new-messages-alert {
+  background-color: #99FE99;
 }
 .my-user::after {
   content: ' (du)';
@@ -241,9 +244,19 @@ ion-nav-view {
 .ion-ios-plus-outline {
   float: right;
 }
+.ion-ios-search {
+	float: right;
+	color: #ccddcc;
+    height: 2rem;
+    font-size: 1.5rem;
+	margin-top: -0.5rem;
+}
 .add-channel-button {
   margin-top: -0.5rem;
   height: 2rem;
   font-size: 1.5rem;
   color: #ccddcc;
+}
+.showAsAdmin {
+  color: blue;
 }

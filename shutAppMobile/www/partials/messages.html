@@ -3,6 +3,8 @@
       <div id="chat-messages">
         <p ng-show="noMessages"> Det finns inga meddelanden att visa i denna konversation. </p>
         <div class="chat-message" ng-repeat="message in messages | orderBy:'timestamp' track by $index">
+			{{historyMessage.timestamp | date : 'MMM d, HH:mm'}}
+			<p>{{historyMessage.text}}</p>
           <div class="user-image-frame">
             <div class="user-image-container">
               <img ng-src="{{message.senderImage}}" class="message-image">
@@ -10,11 +12,16 @@
           </div>
           <div class="message-content">
             <div class="message-info">
-              <span class="username" ng-click="changeRecipientFromMessage(message)">{{message.senderName}}</span> <span class="timestamp">{{message.timestamp | date : 'MMM d, HH:mm'}}</span>
+              <span class="username" ng-class="{showAsAdmin: message.admin}" ng-click="changeRecipientFromMessage(message)">{{message.senderName}}</span>
+              <span class="timestamp">{{message.timestamp | date : 'MMM d, HH:mm'}}</span>
+              <span class="edited" ng-show="message.edited">(Edited)</span>
             </div>
-            <div class="message-text" ng-bind-html="message.text | smilies"></div>
+            <div class="message-text" on-hold="holdOnMessage(message)" ng-bind-html="message.text | smilies"></div>
           </div>
         </div>
+      </div>
+      <div ng-show="newMessages.length>0" class="new-messages-alert">
+      Du har olästa meddelanden.
       </div>
     </ion-content>
     <div keyboard-attach class="list light-grey bottommsg message-input-container">
@@ -22,11 +29,14 @@
         <label class="item-input-wrapper line-light-grey nopadtop">
           <textarea onkeyup="limitTextarea(this, 5, 255)" msd-elastic maxlength="255" class="line-light-grey message-input-field" rows="5" type="text" placeholder="Skriv ditt meddelande..." ng-model="text.message">
           </textarea>
+	  	
         </label>
         <div class="divsend">
           <button class="button ion-ios-arrow-forward iconsend" ng-click="isPrivate ? postPrivateMessage() : postMessage()"></button>
         </div>
+	  	
       </div>
+  	
     </div>
-
+  	
 </ion-view>

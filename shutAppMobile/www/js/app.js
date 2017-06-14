@@ -7,166 +7,166 @@
 var app = angular.module('starter', ['ionic', 'ionic.cloud', 'lib', 'ngSanitize', 'btford.socket-io', 'ngCordova', 'monospaced.elastic', 'angular-smilies', 'ngStorage']);
 
 app.run(function($ionicPlatform, $rootScope, $ionicPopup, $state) {
-  $ionicPlatform.ready(function() {
-    $rootScope.android = ionic.Platform.isAndroid();
-    if(window.cordova && window.cordova.plugins.Keyboard) {
-      // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
-      // for form inputs)
-      cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+    $ionicPlatform.ready(function() {
+        $rootScope.android = ionic.Platform.isAndroid();
+        if(window.cordova && window.cordova.plugins.Keyboard) {
+            // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
+            // for form inputs)
+            cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
 
-      // Don't remove this line unless you know what you are doing. It stops the viewport
-      // from snapping when text inputs are focused. Ionic handles this internally for
-      // a much nicer keyboard experience.
-      cordova.plugins.Keyboard.disableScroll(true);
-    }
-    if(window.StatusBar) {
-      StatusBar.styleDefault();
-      StatusBar.overlaysWebView(false);
-    }
-    window.addEventListener('native.keyboardshow', keyboardShowHideHandler);
-    window.addEventListener('native.keyboardhide', keyboardShowHideHandler);
+            // Don't remove this line unless you know what you are doing. It stops the viewport
+            // from snapping when text inputs are focused. Ionic handles this internally for
+            // a much nicer keyboard experience.
+            cordova.plugins.Keyboard.disableScroll(true);
+        }
+        if(window.StatusBar) {
+            StatusBar.styleDefault();
+            StatusBar.overlaysWebView(false);
+        }
+        window.addEventListener('native.keyboardshow', keyboardShowHideHandler);
+        window.addEventListener('native.keyboardhide', keyboardShowHideHandler);
 
-    function keyboardShowHideHandler(e) {
-      $rootScope.$broadcast("keyboardShowHideEvent");
-    }
+        function keyboardShowHideHandler(e) {
+            $rootScope.$broadcast("keyboardShowHideEvent");
+        }
 
-    //If you press the hardware backbutton on android, shows a dialog box
-    //if you are really sure about exiting.
-    $ionicPlatform.registerBackButtonAction(function(event) {
-      if ($state.current.name == 'messages') {
-        $ionicPopup.confirm({
-          title: 'Avsluta ShutApp',
-          template: 'Är du säker på att du vill avsluta?'
-        }).then(function(res) {
-          if (res) ionic.Platform.exitApp();
-        });
-      }
-    }, 100);
-  });
+        //If you press the hardware backbutton on android, shows a dialog box
+        //if you are really sure about exiting.
+        $ionicPlatform.registerBackButtonAction(function(event) {
+            if ($state.current.name == 'messages') {
+                $ionicPopup.confirm({
+                    title: 'Avsluta ShutApp',
+                    template: 'Är du säker på att du vill avsluta?'
+                }).then(function(res) {
+                    if (res) ionic.Platform.exitApp();
+                });
+            }
+        }, 100);
+    });
 });
 
 app.value('messageAudio', new Audio('sounds/meow.mp3'));
 
 app.factory('mySocket', function(socketFactory) {
-  var myIoSocket = io.connect('http://shutapp.nu:3000');
-  socket = socketFactory({
-    ioSocket: myIoSocket
-  });
-  return socket;
+    var myIoSocket = io.connect('http://shutapp.nu:3000');
+    socket = socketFactory({
+        ioSocket: myIoSocket
+    });
+    return socket;
 });
 
 app.factory('autoLoginManager', function($localStorage) {
-  return {
-    addUser: function(user) {
-      $localStorage.currentUser = user;
-    },
-    removeUser: function() {
-      delete $localStorage.currentUser;
-    },
-    currentUser: function() {
-      return $localStorage.currentUser;
-    }
-  };
+    return {
+        addUser: function(user) {
+            $localStorage.currentUser = user;
+        },
+        removeUser: function() {
+            delete $localStorage.currentUser;
+        },
+        currentUser: function() {
+            return $localStorage.currentUser;
+        }
+    };
 });
 
 app.factory('stateHandler', function(mySocket, $rootScope, $timeout) {
-  var promise;
-  return {
-    goIdle: function() {
-      mySocket.emit('go idle', $rootScope.user);
-      //disconnect after 30 seconds away from the app
-      promise = $timeout(mySocket.disconnect, 30*1000);
-    },
-    goActive: function() {
-      $timeout.cancel(promise);
-      mySocket.connect();
-      mySocket.emit('connected', $rootScope.user);
+    var promise;
+    return {
+        goIdle: function() {
+            mySocket.emit('go idle', $rootScope.user);
+            //disconnect after 30 seconds away from the app
+            promise = $timeout(mySocket.disconnect, 30*1000);
+        },
+        goActive: function() {
+            $timeout.cancel(promise);
+            mySocket.connect();
+            mySocket.emit('connected', $rootScope.user);
+        }
     }
-  }
 });
 
 app.factory('toaster', function($cordovaToast) {
-  return {
-    toast: function(message, duration, location) {
-      $cordovaToast.show(message, duration, location).then(function(success) {
-        console.log("The toast was shown");
-      }, function (error) {
-        console.log("The toast was not shown due to " + error);
-      });
+    return {
+        toast: function(message, duration, location) {
+            $cordovaToast.show(message, duration, location).then(function(success) {
+                console.log("The toast was shown");
+            }, function (error) {
+                console.log("The toast was not shown due to " + error);
+            });
+        }
     }
-  }
 });
 
 app.config(function($stateProvider, $urlRouterProvider, $ionicConfigProvider, $ionicCloudProvider) {
-  $stateProvider
+    $stateProvider
     .state('login', {
-      url: '/login',
-      templateUrl: 'partials/login.html',
-      controller: 'LoginController'
+        url: '/login',
+        templateUrl: 'partials/login.html',
+        controller: 'LoginController'
     })
     .state('signup', {
-      url: '/signup',
-      templateUrl: 'partials/signup.html',
-      controller: 'SignupController'
+        url: '/signup',
+        templateUrl: 'partials/signup.html',
+        controller: 'SignupController'
     })
     .state('messages', {
-      url: '/messages',
-      templateUrl: 'partials/messages-and-menu.html',
-      controller: 'MessagesController'
+        url: '/messages',
+        templateUrl: 'partials/messages-and-menu.html',
+        controller: 'MessagesController'
     })
     .state('settings', {
-      url: '/settings',
-      templateUrl: 'partials/settings.html',
-      controller: 'SettingsController'
+        url: '/settings',
+        templateUrl: 'partials/settings.html',
+        controller: 'SettingsController'
     });
-  $urlRouterProvider.otherwise('/login');
-  $ionicConfigProvider.views.maxCache(0);
-  $ionicCloudProvider.init({
-    "core": {
-      "app_id": "381a5d8c"
-    },
-    //inject $ionicPush to push
-    "push": {
-      "sender_id": "195920830260",
-      "pluginConfig": {
-        "ios": {
-          "badge": true,
-          "sound": true
+    $urlRouterProvider.otherwise('/login');
+    $ionicConfigProvider.views.maxCache(0);
+    $ionicCloudProvider.init({
+        "core": {
+            "app_id": "381a5d8c"
         },
-        "android": {
-          "iconColor": "#343434"
+        //inject $ionicPush to push
+        "push": {
+            "sender_id": "195920830260",
+            "pluginConfig": {
+                "ios": {
+                    "badge": true,
+                    "sound": true
+                },
+                "android": {
+                    "iconColor": "#343434"
+                }
+            }
         }
-      }
-    }
-  });
+    });
 });
 
 function limitTextarea(textarea, maxLines, maxChar) {
-  var lines = textarea.value.replace(/\r/g, '').split('\n'), lines_removed, char_removed, i;
-  if (maxLines && lines.length > maxLines) {
-    lines = lines.slice(0, maxLines);
-    lines_removed = 1
-  }
-  if (maxChar) {
-    i = lines.length;
-    while (i-- > 0) if (lines[i].length > maxChar) {
-      lines[i] = lines[i].slice(0, maxChar);
-      char_removed = 1
+    var lines = textarea.value.replace(/\r/g, '').split('\n'), lines_removed, char_removed, i;
+    if (maxLines && lines.length > maxLines) {
+        lines = lines.slice(0, maxLines);
+        lines_removed = 1
     }
-    if (char_removed || lines_removed) {
-      textarea.value = lines.join('\n')
+    if (maxChar) {
+        i = lines.length;
+        while (i-- > 0) if (lines[i].length > maxChar) {
+            lines[i] = lines[i].slice(0, maxChar);
+            char_removed = 1
+        }
+        if (char_removed || lines_removed) {
+            textarea.value = lines.join('\n')
+        }
     }
-  }
 }
 
 app.controller('LoginController', function ($rootScope, $scope, $location, userManager, toaster, autoLoginManager) {
-  //Needed on scope before login credentials are entered by user.
-  $scope.login = {};
+    //Needed on scope before login credentials are entered by user.
+    $scope.login = {};
 
-  if(autoLoginManager.currentUser()) {
-    $rootScope.user = autoLoginManager.currentUser();
-    $location.path('/messages'); //Redirects to /messages.
-  };
+    if(autoLoginManager.currentUser()) {
+        $rootScope.user = autoLoginManager.currentUser();
+        $location.path('/messages'); //Redirects to /messages.
+    };
 
     $scope.userLogin = function () {
         if ($scope.login.username === undefined || $scope.login.password === undefined) {
@@ -192,386 +192,452 @@ app.controller('LoginController', function ($rootScope, $scope, $location, userM
 });
 
 app.controller('SignupController', function ($location, $scope, $rootScope, userManager, toaster) {
-  $scope.userSignup = function (signup) {
-    if (signup === undefined || signup.email === undefined || signup.username === undefined || signup.password === undefined || signup.passwordagain === undefined) {
-      var message = "";
-      if(signup.username === undefined) message += "Du måste välja ett användarnamn som innehåller minst tre tecken och max 20 tecken." +
-      "\nDu kan inte använda speciella tecken, endast siffror och bokstäver(a-z).";
-      if(signup.email === undefined) {
-        if(message.length > 0) message += "\n";
-        message += "Felaktig emailadress.";
-      };
-      if(signup.password === undefined) {
-        if(message.length > 0) message += "\n";
-        message += "Du måste välja ett lösenord som innehåller minst sex tecken och max 50 tecken.";
-      };
-      toaster.toast(message, 'long', 'bottom');
-    } else if(signup.password !== signup.passwordagain) {
-      toaster.toast('Du skrev in lösenordet olika i de två fälten.', 'long', 'bottom');
-    } else {
-      userManager.signupuser({
-        username: signup.username,
-        email: signup.email,
-        password: signup.password
-      }).then(function (res) { //Successful codes 100-399.
-        console.log("Signup OK. Redirecting to login.");
-        toaster.toast("Användare registrerad.", "long", "bottom");
-        $location.path(res.data.redirect);
-      }, function (res) { //Failed codes 400-599+?
-        console.log("Signup failed.");
-        var message = "";
-        switch (res.data.reason) {
-          case "username":
-            message = "Användarnamnet är upptaget.";
-            break;
-          case "email":
-            message = "Emailadressen är redan registrerad.";
-            break;
-          default:
-            message = "Det blev lite fel!";
+    $scope.userSignup = function (signup) {
+        if (signup === undefined || signup.email === undefined || signup.username === undefined || signup.password === undefined || signup.passwordagain === undefined) {
+            var message = "";
+            if(signup.username === undefined) message += "Du måste välja ett användarnamn som innehåller minst tre tecken och max 20 tecken." +
+            "\nDu kan inte använda speciella tecken, endast siffror och bokstäver(a-z).";
+            if(signup.email === undefined) {
+                if(message.length > 0) message += "\n";
+                message += "Felaktig emailadress.";
+            };
+            if(signup.password === undefined) {
+                if(message.length > 0) message += "\n";
+                message += "Du måste välja ett lösenord som innehåller minst sex tecken och max 50 tecken.";
+            };
+            toaster.toast(message, 'long', 'bottom');
+        } else if(signup.password !== signup.passwordagain) {
+            toaster.toast('Du skrev in lösenordet olika i de två fälten.', 'long', 'bottom');
+        } else {
+            userManager.signupuser({
+                username: signup.username,
+                email: signup.email,
+                password: signup.password
+            }).then(function (res) { //Successful codes 100-399.
+                console.log("Signup OK. Redirecting to login.");
+                toaster.toast("Användare registrerad.", "long", "bottom");
+                $location.path(res.data.redirect);
+            }, function (res) { //Failed codes 400-599+?
+                console.log("Signup failed.");
+                var message = "";
+                switch (res.data.reason) {
+                    case "username":
+                    message = "Användarnamnet är upptaget.";
+                    break;
+                    case "email":
+                    message = "Emailadressen är redan registrerad.";
+                    break;
+                    default:
+                    message = "Det blev lite fel!";
+                }
+                toaster.toast(message, 'long', 'bottom');
+            });
         }
-        toaster.toast(message, 'long', 'bottom');
-      });
-    }
-  };
+    };
 });
 
 app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatform, $location, $ionicPush, $ionicScrollDelegate, $ionicSideMenuDelegate, $ionicPopup, stateHandler, toaster, messageManager, mySocket, userManager, messageAudio, autoLoginManager) {
-  mySocket.removeAllListeners();
+    mySocket.removeAllListeners();
 
-  $ionicPlatform.on('pause', stateHandler.goIdle);
-  $ionicPlatform.on('resume', stateHandler.goActive);
-  $ionicPlatform.on('deviceready', stateHandler.goActive);
+    $ionicPlatform.on('pause', stateHandler.goIdle);
+    $ionicPlatform.on('resume', stateHandler.goActive);
 
-  $scope.$on("keyboardShowHideEvent", function() {
-    $ionicScrollDelegate.scrollBottom();
-  });
-
-  $rootScope.$watch('messages', function () {
-    if (!$rootScope.messages || $rootScope.messages.length <= 0) {
-      $scope.noMessages = true;
-    } else {
-      $scope.noMessages = false;
-      $ionicScrollDelegate.scrollBottom();
-    }
-  }, true);
-
-  if (!$rootScope.user) {
-    console.log("User not logged in! Redirecting to login.");
-    $location.path('/login');
-  } else {
-    //Register the device and get an id to be able to receive push notifications
-    $ionicPush.register().then(function(t) {
-      $rootScope.user.token = t.token;
-      var postObj = {id: $rootScope.user.id, token: t.token};
-      //Save device to user in database
-      userManager.addDevice(postObj);
-      return $ionicPush.saveToken(t);
-    }).then(function(t) {
-      //alert("Token: " + t.token);
-    });
-    /* Might be needed in the future?
-    $scope.$on('cloud:push:notification', function(event, data) {
-      var msg = data.message;
-      alert(msg.title + ': ' + msg.text);
-    });
-    */
-    $scope.text = {};
-    $scope.text.message = "";
-    $rootScope.newMessages = [];
-    mySocket.connect();
-    mySocket.on('chatroom message', function (msg) {
-      $rootScope.messages.push(msg);
-    });
-    mySocket.on('private message', function (message) {
-      //Trying to add user to user conversations list
-      if (message.senderId == $rootScope.user.id) {
-        if (!$rootScope.conversations.map(function (obj) { return obj.id; }).includes(message.recipientId)) {
-          $rootScope.conversations.push({ name: message.recipientName, id: message.recipientId });
-        }
-      } else {
-        if (!$rootScope.conversations.map(function (obj) { return obj.id; }).includes(message.senderId)) {
-          $rootScope.conversations.push({ name: message.senderName, id: message.senderId });
-        }
-      }
-
-      if ($rootScope.privateRecipient && (message.senderId == $rootScope.privateRecipient.id || message.senderId == $rootScope.user.id)) {
-        $rootScope.messages.push(message);
-      } else {
-        $rootScope.newMessages.push(message.senderId);
-        messageAudio.play();
-      }
-    });
-    mySocket.on('connect message', function (msg) {
-      $rootScope.statusMessage = msg;
-    });
-    mySocket.on('disconnect message', function (msg) {
-      $rootScope.statusMessage = msg;
-    });
-    mySocket.on('banned', function () {
-      console.log('oh no, banned!');
-      $rootScope.user = {};
-      autoLoginManager.removeUser();
-      $location.path('#/login');
-      toaster.toast('Du är avstängd!', 'long', 'center');
+    $scope.$on("keyboardShowHideEvent", function() {
+        $ionicScrollDelegate.scrollBottom();
     });
 
-    $scope.changeRecipientFromMessage = function(message) {
-        var socketId = $rootScope.activeUsers.filter(function(user) {
-            if(message.senderId == user.id) return user.socketId;
-        });
-        $rootScope.changeRecipient({
-            name: message.senderName,
-            id: message.senderId,
-            socketId: socketId
-        });
-    }
-
-  $rootScope.changeRecipient = function changeRecipient(recipient) {
-        $rootScope.isPrivate = true;
-        $rootScope.selected = recipient.id;
-        $rootScope.privateRecipient = recipient;
-        $rootScope.chatroom = undefined;
-        if ($rootScope.selectedChatroom) {
-            mySocket.emit('leave chatroom', $rootScope.selectedChatroom);
-        }
-        if ($rootScope.newMessages.includes(recipient.id)) {
-            $rootScope.newMessages.splice($rootScope.newMessages.indexOf(recipient.id), 1);
-        }
-        if (!$rootScope.user) {
-            console.log("User not logged in! Redirecting to login.");
-            $location.path('/');
+    $rootScope.$watch('messages', function () {
+        if (!$rootScope.messages || $rootScope.messages.length <= 0) {
+            $scope.noMessages = true;
         } else {
-            $location.path('/messages');
-            messageManager.getPrivateMessages($rootScope.user.id, $rootScope.privateRecipient.id).then(function(res) {
-                $rootScope.messages = res.data;
+            $scope.noMessages = false;
+            $ionicScrollDelegate.scrollBottom();
+        }
+    }, true);
+
+    if (!$rootScope.user) {
+        console.log("User not logged in! Redirecting to login.");
+        $location.path('/login');
+    } else {
+        //Register the device and get an id to be able to receive push notifications
+        $ionicPush.register().then(function(t) {
+            $rootScope.user.token = t.token;
+            var postObj = {id: $rootScope.user.id, token: t.token};
+            //Save device to user in database
+            userManager.addDevice(postObj);
+            return $ionicPush.saveToken(t);
+        }).then(function(t) {
+            //alert("Token: " + t.token);
+        });
+
+        $scope.$on('cloud:push:notification', function(event, data) {
+            var msg = data.message;
+            var recipient = {id: msg.raw.additionalData.id, name: msg.raw.additionalData.name};
+            $rootScope.changeRecipient(recipient);
+        });
+
+        $scope.text = {};
+        $scope.text.message = "";
+        $rootScope.newMessages = [];
+        mySocket.connect();
+        mySocket.on('chatroom message', function (msg) {
+            $rootScope.messages.push(msg);
+        });
+        mySocket.on('private message', function (message) {
+            //Trying to add user to user conversations list
+            if (message.senderId == $rootScope.user.id) {
+                if (!$rootScope.conversations.map(function (obj) { return obj.id; }).includes(message.recipientId)) {
+                    $rootScope.conversations.push({ name: message.recipientName, id: message.recipientId });
+                }
+            } else {
+                if (!$rootScope.conversations.map(function (obj) { return obj.id; }).includes(message.senderId)) {
+                    $rootScope.conversations.push({ name: message.senderName, id: message.senderId });
+                }
+            }
+
+            if ($rootScope.privateRecipient && (message.senderId == $rootScope.privateRecipient.id || message.senderId == $rootScope.user.id)) {
+                $rootScope.messages.push(message);
+            } else {
+                if(!$rootScope.newMessages.includes(message.senderId)) {
+                    $rootScope.newMessages.push(message.senderId);
+                }
+                messageAudio.play();
+            }
+        });
+        mySocket.on('connect message', function (msg) {
+            $rootScope.statusMessage = msg;
+        });
+        mySocket.on('disconnect message', function (msg) {
+            $rootScope.statusMessage = msg;
+        });
+        mySocket.on('banned', function () {
+            console.log('oh no, banned!');
+            $rootScope.user = {};
+            autoLoginManager.removeUser();
+            $location.path('#/login');
+            toaster.toast('Du är avstängd!', 'long', 'center');
+        });
+        mySocket.on('unread messages', function(messages) {
+            $rootScope.newMessages = messages;
+            //In case one of the users who have written to us is already selected
+            //(can happen when we open the app from a push notification)
+            if($rootScope.isPrivate && $rootScope.newMessages.includes($rootScope.privateRecipient.id)) {
+                $rootScope.newMessages.splice($rootScope.newMessages.indexOf($rootScope.privateRecipient.id), 1);
+            }
+        });
+
+        $scope.changeRecipientFromMessage = function(message) {
+            var socketId = $rootScope.activeUsers.filter(function(user) {
+                if(message.senderId == user.id) return user.socketId;
+            });
+            $rootScope.changeRecipient({
+                name: message.senderName,
+                id: message.senderId,
+                socketId: socketId
             });
         }
-        $rootScope.messagesBarTitle = $rootScope.privateRecipient.name;
-  };
 
-    $scope.onHold = function(targetUser){
-        if ($rootScope.user.admin) {
-            var popup = $ionicPopup.show({
-                title: 'Vad vill du göra med ' + targetUser.name + '?',
-                scope: $scope,
-                templateUrl: 'partials/editUser.html'
-              });
+        $rootScope.changeRecipient = function changeRecipient(recipient) {
+            $rootScope.isPrivate = true;
+            $rootScope.selected = recipient.id;
+            $rootScope.privateRecipient = recipient;
+            if ($rootScope.selectedChatroom) {
+                mySocket.emit('leave chatroom', $rootScope.selectedChatroom.id);
+                $rootScope.selectedChatroom = undefined;
+            }
+            if ($rootScope.newMessages.includes(recipient.id)) {
+                $rootScope.newMessages.splice($rootScope.newMessages.indexOf(recipient.id), 1);
+            }
+            var barTitle = $rootScope.privateRecipient.name;
+            if($rootScope.privateRecipient.id == $rootScope.user.id) {
+                barTitle += " (du)";
+            }
+            $rootScope.messagesBarTitle = barTitle;
+            if (!$rootScope.user) {
+                console.log("User not logged in! Redirecting to login.");
+                $location.path('/');
+            } else {
+                $location.path('/messages');
+                messageManager.getPrivateMessages($rootScope.user.id, $rootScope.privateRecipient.id).then(function(res) {
+                    $rootScope.messages = res.data;
+                });
+            }
+        };
 
-              //Temp function.
-              $scope.banUser = function(){
-                  console.log("Bann!");
-                  popup.close();
-              }
+        $scope.onHold = function(targetUser){
+            if ($rootScope.user.admin) {
+                var popup = $ionicPopup.show({
+                    title: 'Vad vill du göra med ' + targetUser.name + '?',
+                    scope: $scope,
+                    templateUrl: 'partials/editUser.html'
+                });
 
-              $scope.deleteUser = function(){
-                  userManager.removeUser({
-                      "userId": $rootScope.user.id,
-                      "removeUserId": targetUser.id
-                  }).then(function (res) {
-                      if (res.status == 200) {
-                          console.log(targetUser.name + " deleted!");
-                          toaster.toast(targetUser.name + ' är nu bortagen!', 'long', 'bottom');
-                      }
-                  }, function (res) {
-                      switch(res.status) {
-                        case 400:
-                          console.log("User is not authorised to delete users.");
-                          toaster.toast('Du måste vara admin för att ta bort användare.', 'short', 'bottom');
-                          break;
-                        case 500:
-                          console.log("Database error: User not found.");
-                          toaster.toast('Databasfel: Användaren kunde inte raderas.', 'short', 'bottom');
-                          break;
-                        default:
-                          console.log("Unknown error.");
-                          toaster.toast('Okänt fel.', 'short', 'bottom');
-                      }
-                  });
-                  popup.close();
-              }
+                //Temp function.
+                $scope.banUser = function(){
+                    console.log("Bann!");
+                    popup.close();
+                }
 
-              $scope.closePopup = function() {
-                  console.log("Admin cancelled user edit.");
-                  popup.close()
-              }
-          }
-      }
+                $scope.deleteUser = function(){
+                    userManager.removeUser({
+                        "userId": $rootScope.user.id,
+                        "removeUserId": targetUser.id
+                    }).then(function (res) {
+                        if (res.status == 200) {
+                            console.log(targetUser.name + " deleted!");
+                            toaster.toast(targetUser.name + ' är nu bortagen!', 'long', 'bottom');
+                        }
+                    }, function (res) {
+                        switch(res.status) {
+                            case 400:
+                            console.log("User is not authorised to delete users.");
+                            toaster.toast('Du måste vara admin för att ta bort användare.', 'short', 'bottom');
+                            break;
+                            case 500:
+                            console.log("Database error: User not found.");
+                            toaster.toast('Databasfel: Användaren kunde inte raderas.', 'short', 'bottom');
+                            break;
+                            default:
+                            console.log("Unknown error.");
+                            toaster.toast('Okänt fel.', 'short', 'bottom');
+                        }
+                    });
+                    popup.close();
+                }
 
-
-    /*
-    //get list of users with which we have had a conversation
-    messageManager.getConversations($rootScope.user.id).then(function(res) {
-        $rootScope.conversations = res.data;
-    /*socket.on('join chatroom', function () {
-     document.getElementById('my-message').focus();
-     });*/
-    mySocket.on('change username', function(obj) {
-      for(var i=0; i<$rootScope.conversations.length; i++) {
-        if($rootScope.conversations[i].id == obj.id) {
-          $rootScope.conversations[i].name = obj.newUserName;
+                $scope.closePopup = function() {
+                    console.log("Admin cancelled user edit.");
+                    popup.close()
+                }
+            }
         }
-      }
+
+        $scope.holdOnMessage = function(message) {
+            if($rootScope.user.id == message.senderId) {
+                $scope.editMessage = {
+                    text: message.text
+                };
+
+                var popup = $ionicPopup.show({
+                    title: 'Meddelande',
+                    scope: $scope,
+                    templateUrl: 'partials/editMessage.html'
+                });
+
+                $scope.saveMessage = function() {
+                    message.text = $scope.editMessage.text;
+                    messageManager.updateMessage(message);
+                    popup.close();
+                };
+
+                $scope.cancelMessage = function() {
+                    popup.close();
+                };
+            }
+        };
+
+
+        /*
+        //get list of users with which we have had a conversation
+        messageManager.getConversations($rootScope.user.id).then(function(res) {
+        $rootScope.conversations = res.data;
+        /*socket.on('join chatroom', function () {
+        document.getElementById('my-message').focus();
+    });*/
+    mySocket.on('change username', function(obj) {
+        for(var i=0; i<$rootScope.conversations.length; i++) {
+            if($rootScope.conversations[i].id == obj.id) {
+                $rootScope.conversations[i].name = obj.newUserName;
+            }
+        }
     });
 
     //send $rootScope.user to server.js, it receives it with socket.on('connected')
     mySocket.emit('connected', $rootScope.user);
     mySocket.emit('connect message', { date: new Date(), text: $rootScope.user.name + " har loggat in." });
     if (!$rootScope.selectedChatroom) {
-      $rootScope.selected = "591d5683f36d281c81b1e5ea";
-      $rootScope.selectedChatroom = $rootScope.selected; // "general"
-      mySocket.emit('join chatroom', $rootScope.selectedChatroom);
-      $rootScope.messagesBarTitle = "#general";
+        $rootScope.selected = "591d5683f36d281c81b1e5ea";
+        $rootScope.selectedChatroom = {
+            id: $rootScope.selected,
+            name: "general"
+        }
+        mySocket.emit('join chatroom', $rootScope.selectedChatroom.id);
+        $rootScope.messagesBarTitle = "#general";
     }
     if (!$rootScope.isPrivate) {
-      messageManager.getMessages($rootScope.selectedChatroom).then(function(res) {
-        $rootScope.messages = res.data;
-        $ionicScrollDelegate.scrollBottom();
-      });
+        messageManager.getMessages($rootScope.selectedChatroom.id).then(function(res) {
+            $rootScope.messages = res.data;
+            $ionicScrollDelegate.scrollBottom();
+        });
     }
 
     $scope.postMessage = function () {
-      var newMessage = {
-        "senderId": $rootScope.user.id,
-        "senderName": $rootScope.user.name,
-        "senderImage": $rootScope.user.image,
-        "text": $scope.text.message,
-        "chatroom": $rootScope.selectedChatroom
-      };
-      //Send message to the current chatroom
-      if (newMessage.text != "") {
-        mySocket.emit('chatroom message', newMessage);
-        messageManager.postMessages(newMessage);
-        $scope.text.message = "";
-        $ionicScrollDelegate.scrollBottom();
-      } else {
-        toaster.toast('Du kan inte skicka ett tomt meddelande. ', 'short', 'bottom');
-      }
-      return false;
+        var newMessage = {
+            "senderId": $rootScope.user.id,
+            "senderName": $rootScope.user.name,
+            "senderImage": $rootScope.user.image,
+            "text": $scope.text.message,
+            "chatroom": $rootScope.selectedChatroom.id
+        };
+        if($rootScope.user.admin) newMessage.admin = true;
+        //Send message to the current chatroom
+        if (newMessage.text != "") {
+            mySocket.emit('chatroom message', newMessage);
+            messageManager.postMessages(newMessage);
+            $scope.text.message = "";
+            $ionicScrollDelegate.scrollBottom();
+        } else {
+            toaster.toast('Du kan inte skicka ett tomt meddelande. ', 'short', 'bottom');
+        }
+        return false;
     };
 
     $scope.postPrivateMessage = function () {
-      var newPrivateMessage = {
-        "senderId": $rootScope.user.id,
-        "senderName": $rootScope.user.name,
-        "senderImage": $rootScope.user.image,
-        "text": $scope.text.message,
-        "recipientId": $rootScope.privateRecipient.id,
-        "recipientName": $rootScope.privateRecipient.name
-      };
-      //Send a direct private message.
-      if (newPrivateMessage.text != "") {
-        mySocket.emit('private message', newPrivateMessage);
-        //Post the message to the database
-        messageManager.postPrivateMessage(newPrivateMessage);
-        $scope.text.message = "";
-        $ionicScrollDelegate.scrollBottom();
-      } else {
-        toaster.toast('Du kan inte skicka ett tomt meddelande. ', 'short', 'bottom');
-      }
+        var newPrivateMessage = {
+            "senderId": $rootScope.user.id,
+            "senderName": $rootScope.user.name,
+            "senderImage": $rootScope.user.image,
+            "text": $scope.text.message,
+            "recipientId": $rootScope.privateRecipient.id,
+            "recipientName": $rootScope.privateRecipient.name
+        };
+        if($rootScope.user.admin) newPrivateMessage.admin = true;
+        //Send a direct private message.
+        if (newPrivateMessage.text != "") {
+            mySocket.emit('private message', newPrivateMessage);
+            //Post the message to the database
+            messageManager.postPrivateMessage(newPrivateMessage);
+            $scope.text.message = "";
+            $ionicScrollDelegate.scrollBottom();
+        } else {
+            toaster.toast('Du kan inte skicka ett tomt meddelande. ', 'short', 'bottom');
+        }
     };
 
     $rootScope.toggleLeft = function() {
-      $ionicSideMenuDelegate.toggleLeft();
+        $ionicSideMenuDelegate.toggleLeft();
     };
-  }
+}
 });
 
 app.controller('LeftSideController', function ($rootScope, $location, $timeout, $ionicSideMenuDelegate, $ionicScrollDelegate, $scope, messageManager, mySocket, toaster) {
-  $scope.newChatroom = {};
 
-  $scope.$on("keyboardShowHideEvent", function() {
-    $scope.scrollSideMenuToTop();
-  });
+    $scope.newChatroom = {};
 
-  $scope.scrollSideMenuToTop = function() {
-    $ionicScrollDelegate.$getByHandle('side-menu-handle').scrollTop();
-  };
-
-  $timeout(function() {
-    $scope.$watch(function () {
-      return $ionicSideMenuDelegate.getOpenRatio();
-    }, function (ratio) {
-      if (ratio == 1) {
+    $scope.$on("keyboardShowHideEvent", function() {
         $scope.scrollSideMenuToTop();
-      }
     });
-  });
 
-  $scope.hadConversation = function(userId) {
-    if($rootScope.conversations) {
-      return $rootScope.conversations.map(x=>x.id).includes(userId);
-    }
-  };
-
-  $scope.toggleAddChatroom = function() {
-    $scope.addMode = true;
-  };
-
-  $scope.addChatroom = function() {
-    messageManager.addChatroom({"name": $scope.newChatroom.name}).then(function(res) {
-      toaster.toast('Chatrummet ' + $scope.newChatroom.name + ' har skapats.', 'short', 'bottom');
-    }, function(res) {
-      switch(res.status) {
-        case 400:
-          toaster.toast('Chatrummet finns redan.', 'short', 'bottom');
-          break;
-          case 406:
-            toaster.toast('Namnet måste vara mellan 3 och 15 tecken långt.', 'short', 'bottom');
-            break;
-        case 500:
-          toaster.toast('Databasfel: Chatrummet kunde inte skapas.', 'short', 'bottom');
-          break;
-        default:
-          toaster.toast('Okänt fel.', 'short', 'bottom');
-      }
-    });
-    $scope.addMode = false;
-  };
-
-  if ($rootScope.user) {
-    messageManager.getChatrooms().then(function (response) {
-      $scope.chatrooms = response.data;
-    });
-    mySocket.on('active users', function (arr) {
-        $rootScope.activeUsers = arr;
-        var activeUserIds = arr.map(x=>x.id);
-        if(!$rootScope.conversations) {
-          messageManager.getConversations($rootScope.user.id).then(function (response) {
-            //$rootScope.conversations will always hold all the people the user has chatted with. offlineConversations holds those that are offline.
-            //offlineConversations is what is shown in the side menu.
-            $rootScope.conversations = response.data;
-            $rootScope.offlineConversations = $rootScope.conversations.filter(x=>!activeUserIds.includes(x.id));
-          });
-        } else {
-          $rootScope.offlineConversations = $rootScope.conversations.filter(x=>!activeUserIds.includes(x.id));
-        }
-    });
-    socket.on('refresh chatroom', function (chatroom) {
-      messageManager.getChatrooms().then(function (response) {
-        $scope.chatrooms = response.data;
-      });
-    });
-    $scope.changeChatroom = function (index) {
-      $rootScope.isPrivate = false;
-      $rootScope.selected = index;
-      $rootScope.chatroom = this.chatroom;
-      $rootScope.privateRecipient = undefined;
-      //Leave chatroom if already in one.
-      if ($rootScope.selectedChatroom) {
-        mySocket.emit('leave chatroom', $rootScope.selectedChatroom);
-      }
-      $rootScope.selectedChatroom = this.chatroom._id;
-      messageManager.getMessages($rootScope.selectedChatroom).then(function(res) {
-        $rootScope.messages = res.data;
-      });
-      mySocket.emit('join chatroom', $rootScope.selectedChatroom);
-      $rootScope.messagesBarTitle = "#" + $rootScope.chatroom.name;
+    $scope.scrollSideMenuToTop = function() {
+        $ionicScrollDelegate.$getByHandle('side-menu-handle').scrollTop();
     };
-  } else {
-    console.log("$rootScope.user is undefined, but WHYYY?!?!");
-    $location.path("/");
-  }
+
+    $timeout(function() {
+        $scope.$watch(function () {
+            return $ionicSideMenuDelegate.getOpenRatio();
+        }, function (ratio) {
+            if (ratio == 1) {
+                $scope.scrollSideMenuToTop();
+            }
+        });
+    });
+
+    $scope.hadConversation = function(userId) {
+        if($rootScope.conversations) {
+            return $rootScope.conversations.map(x=>x.id).includes(userId);
+        }
+    };
+
+    $scope.toggleAddChatroom = function() {
+        $scope.addMode = true;
+    };
+
+    $scope.addChatroom = function() {
+        messageManager.addChatroom({"name": $scope.newChatroom.name}).then(function(res) {
+            toaster.toast('Chatrummet ' + $scope.newChatroom.name + ' har skapats.', 'short', 'bottom');
+        }, function(res) {
+            switch(res.status) {
+                case 400:
+                toaster.toast('Chatrummet finns redan.', 'short', 'bottom');
+                break;
+                case 406:
+                toaster.toast('Namnet måste vara mellan 3 och 15 tecken långt.', 'short', 'bottom');
+                break;
+                case 500:
+                toaster.toast('Databasfel: Chatrummet kunde inte skapas.', 'short', 'bottom');
+                break;
+                default:
+                toaster.toast('Okänt fel.', 'short', 'bottom');
+            }
+        });
+        $scope.addMode = false;
+    };
+
+    if ($rootScope.user) {
+        messageManager.getChatrooms().then(function (response) {
+            $scope.chatrooms = response.data;
+        });
+        mySocket.on('active users', function (arr) {
+            $rootScope.activeUsers = arr;
+            var activeUserIds = arr.map(x=>x.id);
+            if(!$rootScope.conversations) {
+                messageManager.getConversations($rootScope.user.id).then(function (response) {
+                    //$rootScope.conversations will always hold all the people the user has chatted with. offlineConversations holds those that are offline.
+                    //offlineConversations is what is shown in the side menu.
+                    $rootScope.conversations = response.data;
+                    $rootScope.offlineConversations = $rootScope.conversations.filter(x=>!activeUserIds.includes(x.id));
+                });
+            } else {
+                $rootScope.offlineConversations = $rootScope.conversations.filter(x=>!activeUserIds.includes(x.id));
+            }
+        });
+        socket.on('refresh chatroom', function (chatroom) {
+            messageManager.getChatrooms().then(function (response) {
+                $scope.chatrooms = response.data;
+            });
+        });
+        socket.on('edited message', function() {
+            messageManager.getMessages($rootScope.selectedChatroom.id).then(function(res) {
+                $rootScope.messages = res.data;
+            });
+        });
+        $scope.changeChatroom = function (index) {
+            $rootScope.isPrivate = false;
+            $rootScope.selected = index;
+            //Leave chatroom if already in one.
+            if ($rootScope.selectedChatroom) {
+                mySocket.emit('leave chatroom', $rootScope.selectedChatroom.id);
+            }
+            $rootScope.selectedChatroom = this.chatroom;
+            $rootScope.privateRecipient = undefined;
+            $rootScope.selectedChatroom.id = this.chatroom._id;
+            messageManager.getMessages($rootScope.selectedChatroom.id).then(function(res) {
+                $rootScope.messages = res.data;
+            });
+            mySocket.emit('join chatroom', $rootScope.selectedChatroom.id);
+            $rootScope.messagesBarTitle = "#" + $rootScope.selectedChatroom.name;
+        };
+    } else {
+        console.log("$rootScope.user is undefined, but WHYYY?!?!");
+        $location.path("/");
+    }
+    $scope.toggleSearchHistory = function() {
+        $scope.searchMode = true;
+    };
+    $rootScope.person = {};
+
+    $scope.searchUser = function() {
+        if($rootScope.person.name) {
+            $rootScope.person.name;
+            messageManager.getHistoricMessages($rootScope.person.name).then(function(res) {
+                $rootScope.messages = res.data;
+                console.log(res.data);
+            });
+            $scope.searchMode = false;
+        } else {
+            $scope.searchMode = true;
+        }
+    };
 });
 
 app.controller('SettingsController', function ($location, $scope, $rootScope, $cordovaCamera, userManager, toaster, mySocket, autoLoginManager) {
@@ -627,17 +693,21 @@ app.controller('SettingsController', function ($location, $scope, $rootScope, $c
     } else {
         var message = "Du måste välja ett användarnamn som innehåller minst tre tecken och max 20 tecken." +
             "\nDu kan inte använda speciella tecken, endast siffror och bokstäver(a-z).";
-        toaster.toast(message, 'long', 'bottom');
-    }
-  };
+            toaster.toast(message, 'long', 'bottom');
+        }
+    };
 
-  $scope.logout = function() {
-    var userId = $rootScope.user.id;
-    var token = $rootScope.user.token;
-    userManager.removeDevice({id: userId, token: token});
-    $rootScope.user = {};
-    mySocket.disconnect();
-    autoLoginManager.removeUser();
-    $location.path('/login');
-  };
+    $scope.logout = function() {
+        var userId = $rootScope.user.id;
+        var token = $rootScope.user.token;
+        userManager.removeDevice({id: userId, token: token});
+        mySocket.emit('go idle', $rootScope.user);
+        $rootScope.user = {};
+        $rootScope.selected = undefined;
+        $rootScope.selectedChatroom = undefined;
+        $rootScope.conversations = [];
+        mySocket.disconnect();
+        autoLoginManager.removeUser();
+        $location.path('/login');
+    };
 });
