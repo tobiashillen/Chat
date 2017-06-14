@@ -607,6 +607,7 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
   	$scope.toggleSearchHistory = function() {
   		$scope.searchMode = true;
   	};
+	
   	$rootScope.person = {};
 	
   	$scope.searchUser = function() {
