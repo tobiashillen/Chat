@@ -246,7 +246,7 @@ app.get('/searchUserMessages', function(req, res) {
             res.status(500).send({});
             return;
         }
-        result.push(chatMessagesResult);
+        result.concat(chatMessagesResult);
     });
     // Find private messages
     db.collection('privateMessages').find({"senderName": userName}, {"timestamp": 1, "text": 1, "senderName": 1, "_id": 0}).toArray(function(err, privateMessagesResult) {
@@ -254,7 +254,7 @@ app.get('/searchUserMessages', function(req, res) {
             res.status(500).send({});
             return;
         }
-        result.push(privateMessagesResult);
+        result.concat(privateMessagesResult);
 
         // Send the search result
         res.status(200).send(result);
