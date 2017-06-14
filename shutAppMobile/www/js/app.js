@@ -48,7 +48,7 @@ app.run(function($ionicPlatform, $rootScope, $ionicPopup, $state) {
 app.value('messageAudio', new Audio('sounds/meow.mp3'));
 
 app.factory('mySocket', function(socketFactory) {
-    var myIoSocket = io.connect('http://192.168.1.235:3000');
+    var myIoSocket = io.connect('http://localhost:3000');
     socket = socketFactory({
         ioSocket: myIoSocket
     });
@@ -74,6 +74,7 @@ app.factory('stateHandler', function(mySocket, $rootScope, $timeout) {
     return {
         goIdle: function() {
             mySocket.emit('go idle', $rootScope.user);
+            mySocket.emit('change badge', $rootScope.user.id);
             //disconnect after 30 seconds away from the app
             promise = $timeout(mySocket.disconnect, 30*1000);
         },
@@ -317,7 +318,9 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
                   senderId: message.senderId,
                   recipientId: $rootScope.user.id
                 };
-                messageManager.markReadMessages(senderObj);
+                messageManager.markReadMessages(senderObj).then(function(res) {
+                    
+                });
             } else {
                 if(!$rootScope.newMessagesSenderIds.includes(message.senderId)) {
                     $rootScope.newMessagesSenderIds.push(message.senderId);
@@ -347,6 +350,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
         });
         //senderArray contains objects with senderId and nrOfMessages
         mySocket.on('unread messages', function(senderArray) {
+            console.log("got unread message: ", senderArray);
             $rootScope.newMessagesSenderIds = senderArray.map(x=>x.senderId);
             $rootScope.unreadMessages = senderArray;
             //In case one of the users who have written to us is already selected
@@ -575,9 +579,9 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
         if($rootScope.user.admin) newPrivateMessage.admin = true;
         //Send a direct private message.
         if (newPrivateMessage.text != "") {
-            mySocket.emit('private message', newPrivateMessage);
             //Post the message to the database
             messageManager.postPrivateMessage(newPrivateMessage);
+            mySocket.emit('private message', newPrivateMessage);
             $scope.text.message = "";
             $ionicScrollDelegate.scrollBottom();
         } else {

@@ -430,6 +430,8 @@ io.on('connection', function(socket){
         if (!isInList) activeUsers.push({ name: socket.username, id: user.id, socketId: socket.id, isIdle: false });
         io.emit('active users', activeUsers);
         db.collection('privateMessages').find({"recipientId": user.id, "unread": true}, {"senderId": 1}).toArray(function(err, result) {
+            console.log("i server.js, err unread messages: ", err);
+            console.log("i server.js, resultat unread messages: ", result)
             var uniqueArray = [];
             var resultIds = result.map(x=>x.senderId);
             for(var i=0; i<resultIds.length; i++) {
@@ -476,30 +478,58 @@ io.on('connection', function(socket){
         } else {
             //Prepare notification
             var notid = parseInt(message.senderId, 16) % 2147483647; //2147483647 is max int in Java
+            //Ugly hack to make sure the latest message has been posted to the database
+            setTimeout(sendPushNotification, 300);
+            function sendPushNotification() {
+                db.collection('privateMessages').find({"recipientId": message.recipientId, "unread": true}).count().then(function(nrOfUnread) {
+                    var pushNotification = new gcm.Message({
+                        "collapseKey": message.senderId,
+                        "data": {
+                            "title": "ShutApp",
+                            "body": message.senderName + " skriver: " + message.text,
+                            "id": message.senderId,
+                            "name": message.senderName,
+                            "notId": notid,
+                            "badge": nrOfUnread
+                        }
+                    });
+                    //get regTokens from database
+                    db.collection('users').findOne({"_id": ObjectID(message.recipientId)},{"devices": 1}).then(function(obj) {
+                        var regTokens = obj.devices;
+                        console.log("tokens: ", obj.devices);
+                        //Send the notification
+                        if(regTokens) {
+                            sender.send(pushNotification, { registrationTokens: regTokens }, function (err, response) {
+                                if (err) console.error("error: ", err);
+                            });
+                        }
+                    });
+                });
+            }
+        }
+        //Send to myself
+        socket.emit('private message', message);
+    });
+    //This will send an invisible push notification, just to change the badge number on the app icon
+    socket.on('change badge', function(userId) {
+        db.collection('privateMessages').find({"recipientId": userId, "unread": true}).count().then(function(nrOfUnread) {
+            console.log("trying to change badge to: " + nrOfUnread);
             var pushNotification = new gcm.Message({
-                "collapseKey": message.senderId,
                 "data": {
-                    "title": "ShutApp",
-                    "body": message.senderName + " skriver: " + message.text,
-                    "id": message.senderId,
-                    "name": message.senderName,
-                    "notId": notid
+                    "badge": nrOfUnread
                 }
             });
-            //get regTokens from database
-            db.collection('users').findOne({"_id": ObjectID(message.recipientId)},{"devices": 1}).then(function(obj) {
+            db.collection('users').findOne({"_id": ObjectID(userId)},{"devices": 1}).then(function(obj) {
                 var regTokens = obj.devices;
-                console.log("tokens: ", obj.devices);
                 //Send the notification
                 if(regTokens) {
                     sender.send(pushNotification, { registrationTokens: regTokens }, function (err, response) {
+                        console.log("sending push notification to change badge");
                         if (err) console.error("error: ", err);
                     });
                 }
             });
-        }
-        //Send to myself
-        socket.emit('private message', message);
+        });
     });
     socket.on('connect message', function(message) {
         socket.broadcast.emit('connect message', message);
