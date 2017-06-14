@@ -1,10 +1,10 @@
 <ion-content delegate-handle="side-menu-handle">
   <div class="item item-divider" ng-hide="addMode">
     Chatrum
-    <button ng-click="toggleAddChatroom()" class="button-icon ion-ios-plus-outline add-channel-button">
+    <button ng-click="toggleAddChatroom()" class="button-icon ion-ios-plus-outline add-channel-button" ng-show="user.admin">
     </button>
   </div>
-  <div class="item item-input-inset" ng-show="addMode">
+  <div class="item item-input-inset" ng-show="showEditChatroom()">
     <label class="item-input-wrapper">
       <input type="text" placeholder="Chatroom" ng-model="newChatroom.name">
     </label>

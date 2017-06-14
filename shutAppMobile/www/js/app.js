@@ -48,7 +48,7 @@ app.run(function($ionicPlatform, $rootScope, $ionicPopup, $state) {
 app.value('messageAudio', new Audio('sounds/meow.mp3'));
 
 app.factory('mySocket', function(socketFactory) {
-    var myIoSocket = io.connect('http://shutapp.nu:3000');
+    var myIoSocket = io.connect('http://localhost:3000');
     socket = socketFactory({
         ioSocket: myIoSocket
     });
@@ -551,9 +551,11 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
     $scope.toggleAddChatroom = function() {
         $scope.addMode = true;
     };
-
+    $scope.showEditChatroom = function() {
+      return $scope.addMode && $rootScope.user.admin;
+    };
     $scope.addChatroom = function() {
-        messageManager.addChatroom({"name": $scope.newChatroom.name}).then(function(res) {
+        messageManager.addChatroom({"name": $scope.newChatroom.name, "user": $rootScope.user}).then(function(res) {
             toaster.toast('Chatrummet ' + $scope.newChatroom.name + ' har skapats.', 'short', 'bottom');
         }, function(res) {
             switch(res.status) {

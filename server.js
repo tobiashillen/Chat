@@ -219,20 +219,22 @@ app.post('/users/remove', function(req, res) {
 app.post('/chatrooms/add', function(req, res) {
     if(req.body.name === undefined || req.body.name.length < 3 || req.body.name.length > 15) return res.status(406).send();
     var roomName = req.body.name.toLowerCase();
-    db.collection('chatrooms').count({"name": roomName}).then(function(error, result) {
-        if(!error) {
-            db.collection('chatrooms').insertOne({"name": roomName, "users": []}).then(function(cb) {
-                if(cb.result.ok > 0) {
-                    io.emit('refresh chatroom');
-                    res.status(201).send();
-                } else {
-                    res.status(500).send();
-                }
-            });
-        } else {
-            res.status(400).send();
-        };
-    })
+    if(isAdmin(req.body.user.id)) {
+      db.collection('chatrooms').count({"name": roomName}).then(function(error, result) {
+          if(!error) {
+              db.collection('chatrooms').insertOne({"name": roomName, "users": []}).then(function(cb) {
+                  if(cb.result.ok > 0) {
+                      io.emit('refresh chatroom');
+                      res.status(201).send();
+                  } else {
+                      res.status(500).send();
+                  }
+              });
+          } else {
+              res.status(400).send();
+          };
+      });
+    };
 });
 
 
