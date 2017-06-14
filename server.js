@@ -171,24 +171,6 @@ function isAdmin(userId) {
     });
 };
 
-app.post('/chatrooms/remove', function(req, res) {
-    isAdmin(req.body.userId).then(function(admin) {
-        if(admin) {
-            var id = ObjectID(req.body.chatroomId);
-            db.collection('chatrooms').findOneAndDelete({"_id": id}).then(function(cb) {
-                if(cb.value) {
-                    io.emit('refresh chatroom');
-                    res.status(200).send();
-                } else {
-                    res.status(500).send();
-                }
-            });
-        } else {
-            res.status(401).send();
-        }
-    });
-});
-
 app.post('/users/remove', function(req, res) {
     isAdmin(req.body.userId).then(function(admin) {
         if(admin) {
@@ -216,27 +198,47 @@ app.post('/users/remove', function(req, res) {
     });
 });
 
+app.post('/chatrooms/remove', function(req, res) {
+    isAdmin(req.body.userId).then(function(admin) {
+        if(admin) {
+            var id = ObjectID(req.body.chatroomId);
+            db.collection('chatrooms').findOneAndDelete({"_id": id}).then(function(cb) {
+                if(cb.value) {
+                    io.emit('refresh chatroom');
+                    res.status(200).send();
+                } else {
+                    res.status(500).send();
+                }
+            });
+        } else {
+            res.status(401).send();
+        }
+    });
+});
+
 app.post('/chatrooms/add', function(req, res) {
     if(req.body.name === undefined || req.body.name.length < 3 || req.body.name.length > 15) return res.status(406).send();
     var roomName = req.body.name.toLowerCase();
-    if(isAdmin(req.body.user.id)) {
-      db.collection('chatrooms').count({"name": roomName}).then(function(error, result) {
-          if(!error) {
-              db.collection('chatrooms').insertOne({"name": roomName, "users": []}).then(function(cb) {
-                  if(cb.result.ok > 0) {
-                      io.emit('refresh chatroom');
-                      res.status(201).send();
-                  } else {
-                      res.status(500).send();
-                  }
-              });
-          } else {
-              res.status(400).send();
-          };
-      });
-    } else {
-      return res.status(406).send();
-    }
+    isAdmin(req.body.user.id).then(function(admin) {
+      if(admin) {
+        db.collection('chatrooms').count({"name": roomName}).then(function(error, result) {
+            if(!error) {
+                db.collection('chatrooms').insertOne({"name": roomName, "users": []}).then(function(cb) {
+                    if(cb.result.ok > 0) {
+                        io.emit('refresh chatroom');
+                        res.status(201).send();
+                    } else {
+                        res.status(500).send();
+                    }
+                });
+            } else {
+                res.status(400).send();
+            }
+        });
+      } else {
+        res.status(406).send();
+      }
+    });
 });
 
 
