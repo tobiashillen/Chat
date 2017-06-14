@@ -31,8 +31,8 @@
   </div>
   <ion-list>
     <ion-item ng-repeat="privateRoom in activeUsers track by privateRoom.id" ng-click="changeRecipient(privateRoom)" on-hold="onHold(privateRoom)" ng-class="{'my-user': user.id == privateRoom.id, markedroom: selected==privateRoom.id, 'idle-user': privateRoom.isIdle}" menu-close>
-      <i ng-class="{icon: true, 'ion-email': hadConversation(privateRoom.id), 'new-message': newMessages.includes(privateRoom.id)}"></i>
-      {{privateRoom.name}}
+      <i ng-class="{icon: true, 'ion-email': hadConversation(privateRoom.id), 'new-message': newMessagesSenderIds.includes(privateRoom.id)}"></i>
+      {{privateRoom.name}} {{privateRoom.nrOfMessages}}
     </ion-item>
   </ion-list>
   <div class="item item-divider">
@@ -40,8 +40,8 @@
   </div>
   <ion-list>
     <ion-item ng-repeat="privateRoom in offlineConversations track by privateRoom.id" ng-click="changeRecipient(privateRoom)" on-hold="onHold(privateRoom)" ng-class="{markedroom: selected==privateRoom.id}" menu-close>
-      <i ng-class="{icon: true, 'ion-email new-message': newMessages.includes(privateRoom.id)}"></i>
-      {{privateRoom.name}}
+      <i ng-class="{icon: true, 'ion-email new-message': newMessagesSenderIds.includes(privateRoom.id)}"></i>
+      {{privateRoom.name}} {{privateRoom.nrOfMessages}}
     </ion-item>
   </ion-list>
 

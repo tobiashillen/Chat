@@ -82,7 +82,8 @@ app.post('/messages/update', function(req, res) {
     });
 });
 
-app.post('/private-messages', function(req, res) {
+//Denna hette tidigare private-messages
+app.post('/private-message', function(req, res) {
     var newPrivateMessage = req.body;
     newPrivateMessage.timestamp = new Date();
     db.collection('privateMessages').insert(newPrivateMessage).then(function(result) {
@@ -92,6 +93,16 @@ app.post('/private-messages', function(req, res) {
         } else {
             res.status(400).send({});
         }
+    });
+});
+
+app.post('/mark-read-messages', function(req, res) {
+    console.log("marking message as read");
+    var senderId = req.body.senderId;
+    var recipientId = req.body.recipientId;
+    db.collection('privateMessages').updateMany({"recipientId": recipientId, "senderId": senderId}, { $set: {"unread": false}}).then(function(doc) {
+        console.log("marked messages as read");
+        res.status(200).send({});
     });
 });
 
@@ -399,25 +410,33 @@ io.on('connection', function(socket){
         }
         if (!isInList) activeUsers.push({ name: socket.username, id: user.id, socketId: socket.id, isIdle: false });
         io.emit('active users', activeUsers);
-        //Search for unread messages in database
-        db.collection("users").findOne({"_id": ObjectID(user.id)}, {"_id": 0, "lastActive": 1}).then(function(obj) {
-            db.collection("privateMessages").find({"recipientId": user.id, "timestamp": {$gt: obj.lastActive}}, {"senderId": 1, "_id": 0}).toArray(function(error, result) {
-                var senders = result.map(x=>x.senderId);
-                var uniqueArray = [];
-                for(var i=0; i<senders.length; i++) {
-                    if(senders.indexOf(senders[i]) == i) {
-                        uniqueArray.push(senders[i]);
+        db.collection('privateMessages').find({"recipientId": user.id, "unread": true}, {"senderId": 1}).toArray(function(err, result) {
+            var uniqueArray = [];
+            var resultIds = result.map(x=>x.senderId);
+            for(var i=0; i<resultIds.length; i++) {
+                if(resultIds.indexOf(resultIds[i]) == i) {
+                    uniqueArray.push(resultIds[i]);
+                }
+            }
+            var finalResult = [];
+            for(var i=0; i<uniqueArray.length; i++) {
+                var counter = 0;
+                for(var j=0; j<resultIds.length; j++) {
+                    if(uniqueArray[i] == resultIds[j]) {
+                        counter++;
                     }
                 }
-                socket.emit('unread messages', uniqueArray);
-            });
+                finalResult.push({
+                    senderId: uniqueArray[i],
+                    nrOfMessages: counter
+                });
+            }
+            console.log("finalResult for unread messages: ", finalResult);
+            socket.emit('unread messages', finalResult);
         });
-
     });
     socket.on('go idle', function(user) {
         console.log(user.name + " going idle");
-        //Adding timestamp on user to be able to show unread messages on login
-        db.collection('users').update({"_id": ObjectID(user.id)}, {$set: {"lastActive": new Date()}});
         var index = activeUsers.findIndex(function(activeUser) {
             return activeUser.id === user.id;
         });
