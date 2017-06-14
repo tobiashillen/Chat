@@ -1,5 +1,5 @@
 var lib = angular.module('lib', []);
-var serverUrl = 'http://192.168.1.16:3000';
+var serverUrl = 'http://shutapp.nu:3000';
 
 lib.factory('userManager', function ($http) {
     var userManager = {};
@@ -52,11 +52,11 @@ lib.factory('messageManager', function ($http) {
     };
 
     messageManager.getHistoricMessages = function (user) {
-        return $http.get('http://localhost:3000/searchUserMessages?userName=' + user);
+        return $http.get(serverUrl + '/searchUserMessages?userName=' + user);
 	};
-    
+
     messageManager.updateMessage = function (message) {
-        return $http.post('http://shutapp.nu:3000/messages/update', message);
+        return $http.post(serverUrl + '/messages/update', message);
     };
 
     return messageManager;
