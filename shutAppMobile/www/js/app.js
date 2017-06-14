@@ -7,24 +7,25 @@
 var app = angular.module('starter', ['ionic', 'ionic.cloud', 'lib', 'ngSanitize', 'btford.socket-io', 'ngCordova', 'monospaced.elastic', 'angular-smilies', 'ngStorage']);
 
 app.run(function($ionicPlatform, $rootScope, $ionicPopup, $state) {
-    $ionicPlatform.ready(function() {
-        $rootScope.android = ionic.Platform.isAndroid();
-        if(window.cordova && window.cordova.plugins.Keyboard) {
-            // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
-            // for form inputs)
-            cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+  $ionicPlatform.ready(function() {
+    $rootScope.android = ionic.Platform.isAndroid();
+    if(window.cordova && window.cordova.plugins.Keyboard) {
+      // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
+      // for form inputs)
+      cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
 
-            // Don't remove this line unless you know what you are doing. It stops the viewport
-            // from snapping when text inputs are focused. Ionic handles this internally for
-            // a much nicer keyboard experience.
-            cordova.plugins.Keyboard.disableScroll(true);
-        }
-        if(window.StatusBar) {
-            StatusBar.styleDefault();
-            StatusBar.overlaysWebView(false);
-        }
-        window.addEventListener('native.keyboardshow', keyboardShowHideHandler);
-        window.addEventListener('native.keyboardhide', keyboardShowHideHandler);
+      // Don't remove this line unless you know what you are doing. It stops the viewport
+      // from snapping when text inputs are focused. Ionic handles this internally for
+      // a much nicer keyboard experience.
+      cordova.plugins.Keyboard.disableScroll(true);
+    }
+    if(window.StatusBar) {
+      StatusBar.styleDefault();
+      StatusBar.overlaysWebView(false);
+    }
+    window.addEventListener('native.keyboardshow', keyboardShowHideHandler);
+    window.addEventListener('native.keyboardhide', keyboardShowHideHandler);
+    document.addEventListener('deviceready', console.log(navigator));
 
         function keyboardShowHideHandler(e) {
             $rootScope.$broadcast("keyboardShowHideEvent");
@@ -640,41 +641,52 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
     };
 });
 
-app.controller('SettingsController', function ($location, $scope, $rootScope, $cordovaCamera, userManager, toaster, mySocket, autoLoginManager) {
+app.controller('SettingsController', function ($location, $scope, $rootScope, $cordovaFile, userManager, toaster, mySocket, autoLoginManager) {
   $scope.goBackToMessages = function() {
     $location.path("/messages");
   };
 
   $scope.takePicture = function() {
-    /*var options = {
-      quality: 80,
-      destinationType: Camera.DestinationType.DATA_URL,
-      sourceType: Camera.PictureSourceType.CAMERA,
-      allowEdit: true,
-      encodingType: Camera.EncodingType.JPEG,
-      targetWidth: 250,
-      targetHeight: 250,
-      popoverOptions: CameraPopoverOptions,
-      saveToPhotoAlbum: false
-    };*/
-    if (navigator.camera) {
-      navigator.camera.getPicture(function(imageData) {
-        $scope.srcImage = "data:image/jpeg;base64,", + imageData;
-        console.log($scope.srcImage);
-      }, function(err) {
-        console.log("Kunde inte spara bilden: " + err);
-      }, { quality: 80, destinationType: Camera.DestinationType.FILE_URI });
-    } else {
-      console.log("navigator.camera is undefined, but whyyy? " + navigator.camera);
+    navigator.camera.getPicture(onPhotoSuccess, onFail, { quality: 50 });
+
+    function onPhotoSuccess(imageData) {
+      $rootScope.user.image = imageData;
+      movePic(imageData);
     }
 
+    function onFail(message) {
+      console.log("Kunde inte ladda in bilden: " + message);
+    }
 
-    /*$cordovaCamera.getPicture(options).then(function(imageData) {
-      $scope.srcImage = "data:image/jpeg;base64," + imageData;
-      console.log($scope.srcImage);
-    }, function(err) {
-      console.log("Kunde inte spara bilden.");
-    });*/
+    function movePic(file) {
+      window.resolveLocalFileSystemURL(file, resolveOnSuccess, resOnError);
+    }
+
+    function resolveOnSuccess(entry){
+      var n = $rootScope.user.id;
+      //new file name
+      var newFileName = n + ".jpg";
+      var myFolderApp = "EasyPacking";
+
+      window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fileSys) {
+          //The folder is created if doesn't exist
+          fileSys.root.getDirectory( myFolderApp,
+            {create:true, exclusive: false},
+            function(directory) {
+              entry.moveTo(directory, newFileName,  successMove, resOnError);
+            },
+            resOnError);
+        },
+        resOnError);
+    }
+
+    function successMove(entry) {
+      console.log("HEJHEJ");
+    }
+
+    function resOnError(error) {
+      alert(error.code);
+    }
   };
 
   $scope.changeUsername = function(newUsername) {
