@@ -661,7 +661,6 @@ app.controller('SettingsController', function ($location, $scope, $rootScope, $c
     function movePic(file) {
       window.resolveLocalFileSystemURL(file, resolveOnSuccess, resOnError);
     }
-
     function resolveOnSuccess(entry){
       var n = $rootScope.user.id;
       //new file name
