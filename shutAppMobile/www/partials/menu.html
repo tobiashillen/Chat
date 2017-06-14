@@ -39,14 +39,14 @@
     Tidigare konversationer
   </div>
   <ion-list>
-    <ion-item ng-repeat="privateRoom in offlineConversations track by privateRoom.id" ng-click="changeRecipient(privateRoom)" ng-class="{markedroom: selected==privateRoom.id}" menu-close>
+    <ion-item ng-repeat="privateRoom in offlineConversations track by privateRoom.id" ng-click="changeRecipient(privateRoom)" on-hold="onHold(privateRoom)" ng-class="{markedroom: selected==privateRoom.id}" menu-close>
       <i ng-class="{icon: true, 'ion-email new-message': newMessages.includes(privateRoom.id)}"></i>
       {{privateRoom.name}}
     </ion-item>
   </ion-list>
 
   <div>
-  	
+
   </div>
 
 </ion-content>
