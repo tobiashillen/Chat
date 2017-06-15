@@ -7,24 +7,25 @@
 var app = angular.module('starter', ['ionic', 'ionic.cloud', 'lib', 'ngSanitize', 'btford.socket-io', 'ngCordova', 'monospaced.elastic', 'angular-smilies', 'ngStorage']);
 
 app.run(function($ionicPlatform, $rootScope, $ionicPopup, $state) {
-    $ionicPlatform.ready(function() {
-        $rootScope.android = ionic.Platform.isAndroid();
-        if(window.cordova && window.cordova.plugins.Keyboard) {
-            // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
-            // for form inputs)
-            cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+  $ionicPlatform.ready(function() {
+    $rootScope.android = ionic.Platform.isAndroid();
+    if(window.cordova && window.cordova.plugins.Keyboard) {
+      // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
+      // for form inputs)
+      cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
 
-            // Don't remove this line unless you know what you are doing. It stops the viewport
-            // from snapping when text inputs are focused. Ionic handles this internally for
-            // a much nicer keyboard experience.
-            cordova.plugins.Keyboard.disableScroll(true);
-        }
-        if(window.StatusBar) {
-            StatusBar.styleDefault();
-            StatusBar.overlaysWebView(false);
-        }
-        window.addEventListener('native.keyboardshow', keyboardShowHideHandler);
-        window.addEventListener('native.keyboardhide', keyboardShowHideHandler);
+      // Don't remove this line unless you know what you are doing. It stops the viewport
+      // from snapping when text inputs are focused. Ionic handles this internally for
+      // a much nicer keyboard experience.
+      cordova.plugins.Keyboard.disableScroll(true);
+    }
+    if(window.StatusBar) {
+      StatusBar.styleDefault();
+      StatusBar.overlaysWebView(false);
+    }
+    window.addEventListener('native.keyboardshow', keyboardShowHideHandler);
+    window.addEventListener('native.keyboardhide', keyboardShowHideHandler);
+    document.addEventListener('deviceready', console.log(navigator));
 
         function keyboardShowHideHandler(e) {
             $rootScope.$broadcast("keyboardShowHideEvent");
@@ -49,7 +50,7 @@ app.value('messageAudio', new Audio('sounds/meow.mp3'));
 app.value('pages', 1);
 
 app.factory('mySocket', function(socketFactory) {
-    var myIoSocket = io.connect('http://localhost:3000');
+    var myIoSocket = io.connect('http://shutapp.nu:3000');
     socket = socketFactory({
         ioSocket: myIoSocket
     });
@@ -196,8 +197,7 @@ app.controller('LoginController', function ($rootScope, $scope, $location, userM
                 console.log('Login successful.');
                 $rootScope.user = {
                     id: res.data._id,
-                    name: res.data.username,
-                    image: res.data.image
+                    name: res.data.username
                 };
                 if(res.data.admin) $rootScope.user.admin = true;
                 autoLoginManager.addUser($rootScope.user);
@@ -257,6 +257,18 @@ app.controller('SignupController', function ($location, $scope, $rootScope, user
 
 app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatform, $location, $ionicPush, $ionicScrollDelegate, $ionicSideMenuDelegate, $ionicPopup, stateHandler, toaster, messageManager, mySocket, userManager, messageAudio, autoLoginManager, setNrOfUnreadMessages, pages) {
     mySocket.removeAllListeners();
+
+    userManager.getPicture($rootScope.user.id).then(function(res) {
+      if (res.data) {
+        $rootScope.user.hasImage = true;
+      }
+    });
+
+    $rootScope.getMessageImage = function(message) {
+      userManager.getPicture(message.senderId).then(function(res) {
+        message.senderImage = res.data;
+      });
+    };
 
     $ionicPlatform.on('pause', stateHandler.goIdle);
     $ionicPlatform.on('resume', stateHandler.goActive);
@@ -584,10 +596,11 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
         var newMessage = {
             "senderId": $rootScope.user.id,
             "senderName": $rootScope.user.name,
-            "senderImage": $rootScope.user.image,
+            "hasImage": $rootScope.user.hasImage,
             "text": $scope.text.message,
             "chatroom": $rootScope.selectedChatroom.id
         };
+        console.log(newMessage);
         if($rootScope.user.admin) newMessage.admin = true;
         //Send message to the current chatroom
         if (newMessage.text != "") {
@@ -605,7 +618,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
         var newPrivateMessage = {
             "senderId": $rootScope.user.id,
             "senderName": $rootScope.user.name,
-            "senderImage": $rootScope.user.image,
+            "hasImage": $rootScope.user.hasImage,
             "text": $scope.text.message,
             "recipientId": $rootScope.privateRecipient.id,
             "recipientName": $rootScope.privateRecipient.name,
@@ -760,26 +773,52 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
     };
 });
 
-app.controller('SettingsController', function ($location, $scope, $rootScope, userManager, toaster, mySocket, autoLoginManager) {
-    $scope.goBackToMessages = function() {
-        $location.path("/messages");
-    };
+app.controller('SettingsController', function ($location, $scope, $rootScope, $cordovaFile, userManager, toaster, mySocket, autoLoginManager) {
+  $scope.goBackToMessages = function() {
+    $location.path("/messages");
+  };
 
-    $scope.changeUsername = function(newUsername) {
-        if(newUsername) {
-            userManager.updateUsername({
-                "id": $rootScope.user.id,
-                "username": newUsername
-            }).then(function () {
-                $rootScope.user.name = newUsername;
-                autoLoginManager.addUser($rootScope.user);
-                toaster.toast('Användarnamnet har ändrats.', 'long', 'bottom');
-            }, function () {
-                toaster.toast('Användarnamnet gick inte att ändra.', 'long', 'bottom');
-            });
-            mySocket.emit('change username', {"id": $rootScope.user.id, "newUserName": newUsername});
-        } else {
-            var message = "Du måste välja ett användarnamn som innehåller minst tre tecken och max 20 tecken." +
+  $scope.getSettingsImage = function(user) {
+    userManager.getPicture(user.id).then(function(res) {
+      user.image = res.data;
+    });
+  };
+
+  $scope.takePicture = function() {
+    navigator.camera.getPicture(onPhotoSuccess, onFail, { quality: 50, encodingType: Camera.EncodingType.JPEG,
+      destinationType: Camera.DestinationType.DATA_URL, sourceType: Camera.PictureSourceType.CAMERA });
+
+    function onPhotoSuccess(imageData) {
+      var image = "data:image/jpeg;base64," + imageData;
+      userManager.uploadPicture({"image": image, "user": $rootScope.user.id});
+      userManager.getPicture($rootScope.user.id).then(function(res) {
+        $scope.getSettingsImage($rootScope.user);
+      });
+      $rootScope.user.hasImage = true;
+      toaster.toast("Din bild har sparats.", 'short', 'bottom');
+    }
+
+    function onFail(message) {
+      console.log("Kunde inte ladda in bilden: " + message);
+      toaster.toast("Kunde inte spara din bild.", 'long', 'bottom');
+    }
+  };
+
+  $scope.changeUsername = function(newUsername) {
+    if(newUsername) {
+        userManager.updateUsername({
+            "id": $rootScope.user.id,
+            "username": newUsername
+        }).then(function () {
+            $rootScope.user.name = newUsername;
+            autoLoginManager.addUser($rootScope.user);
+            toaster.toast('Användarnamnet har ändrats.', 'long', 'bottom');
+        }, function () {
+            toaster.toast('Användarnamnet gick inte att ändra.', 'long', 'bottom');
+        });
+        mySocket.emit('change username', {"id": $rootScope.user.id, "newUserName": newUsername});
+    } else {
+        var message = "Du måste välja ett användarnamn som innehåller minst tre tecken och max 20 tecken." +
             "\nDu kan inte använda speciella tecken, endast siffror och bokstäver(a-z).";
             toaster.toast(message, 'long', 'bottom');
         }

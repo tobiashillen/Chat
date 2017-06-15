@@ -194,7 +194,7 @@ ion-nav-view {
   display: block;
   min-width: 100%;
   min-height: 100%;
-  max-width: 2.7rem;
+  max-height: 2.7rem;
   margin: auto;
   position: absolute;
   top: -100%;
@@ -202,7 +202,7 @@ ion-nav-view {
   bottom: -100%;
   left: -100%;
 }
-.full-image-frame {
+.settings-image-frame {
   border: 1px solid #8d8d8d;
   border-radius: 0.2rem;
   display: inline-block;
@@ -212,16 +212,16 @@ ion-nav-view {
   overflow: hidden;
   margin: 0 28% 1rem;
 }
-.full-image-container {
+.settings-image-container {
   height: 100%;
   overflow: hidden;
   position: relative;
 }
-.full-image {
+.settings-image {
   display: block;
   min-width: 100%;
   min-height: 100%;
-  max-width: 10rem;
+  max-height: 10rem;
   margin: auto;
   position: absolute;
   top: -100%;

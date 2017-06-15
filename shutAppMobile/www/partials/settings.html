@@ -7,10 +7,11 @@
     <div class="settings-username">
       <h1>{{user.name}}</h1>
     </div>
-    <div class="full-image-frame">
-      <div class="full-image-container">
-        <img class="full-image" ng-src="{{user.image}}">
-        <i class="button button-icon icon ion-camera"></i>
+    <div class="settings-image-frame">
+      <div class="settings-image-container">
+        <img class="settings-image" ng-if="user.hasImage" ng-show="user.hasImage" ng-init="getSettingsImage(user)" ng-src="{{user.image}}">
+        <img class="settings-image" ng-if="!user.hasImage" ng-show="!user.hasImage" src="../img/person-placeholder.jpg">
+        <i class="button button-icon icon ion-camera" ng-click="takePicture()"></i>
       </div>
     </div>
     <div class="item item-input-inset change-username-container">
