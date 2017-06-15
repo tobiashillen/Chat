@@ -264,7 +264,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
       }
     });
 
-    $scope.getMessageImage = function(message) {
+    $rootScope.getMessageImage = function(message) {
       userManager.getPicture(message.senderId).then(function(res) {
         message.senderImage = res.data;
       });
@@ -783,17 +783,18 @@ app.controller('SettingsController', function ($location, $scope, $rootScope, $c
       destinationType: Camera.DestinationType.DATA_URL, sourceType: Camera.PictureSourceType.CAMERA });
 
     function onPhotoSuccess(imageData) {
-      var userImage = document.getElementsByClassName('full-image')[0];
       var image = "data:image/jpeg;base64," + imageData;
       userManager.uploadPicture({"image": image, "user": $rootScope.user.id});
       userManager.getPicture($rootScope.user.id).then(function(res) {
-        userImage.src = res.data;
+        $scope.getSettingsImage($rootScope.user);
       });
       $rootScope.user.hasImage = true;
+      toaster.toast("Din bild har sparats.", 'short', 'bottom');
     }
 
     function onFail(message) {
       console.log("Kunde inte ladda in bilden: " + message);
+      toaster.toast("Kunde inte spara din bild.", 'long', 'bottom');
     }
   };
 

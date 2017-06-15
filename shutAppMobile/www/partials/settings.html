@@ -9,7 +9,8 @@
     </div>
     <div class="settings-image-frame">
       <div class="settings-image-container">
-        <img class="settings-image" ng-init="getSettingsImage(user)" ng-src="{{user.image}}">
+        <img class="settings-image" ng-if="user.hasImage" ng-show="user.hasImage" ng-init="getSettingsImage(user)" ng-src="{{user.image}}">
+        <img class="settings-image" ng-if="!user.hasImage" ng-show="!user.hasImage" src="../img/person-placeholder.jpg">
         <i class="button button-icon icon ion-camera" ng-click="takePicture()"></i>
       </div>
     </div>

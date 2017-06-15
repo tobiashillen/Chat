@@ -11,6 +11,7 @@ shutAppMobile/www/dist
 ngCordova
 shutAppMobile/config.xml
 ngstorage
+uploads
 
 ### Angular ###
 ## Angular ##
