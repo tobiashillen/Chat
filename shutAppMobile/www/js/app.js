@@ -544,6 +544,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
         }
         mySocket.emit('join chatroom', $rootScope.selectedChatroom.id);
         $rootScope.messagesBarTitle = "#general";
+        $rootScope.isPrivate = false;
     }
     if (!$rootScope.isPrivate) {
         messageManager.getMessages($rootScope.selectedChatroom.id).then(function(res) {
@@ -769,6 +770,7 @@ app.controller('SettingsController', function ($location, $scope, $rootScope, us
         $rootScope.unreadMessages = undefined;
         $rootScope.offlineConversations = undefined;
         $rootScope.activeUsers = undefined;
+        $rootScope.messages = undefined;
         mySocket.disconnect();
         autoLoginManager.removeUser();
         $location.path('/login');
