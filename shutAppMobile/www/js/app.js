@@ -46,7 +46,6 @@ app.run(function($ionicPlatform, $rootScope, $ionicPopup, $state) {
 });
 
 app.value('messageAudio', new Audio('sounds/meow.mp3'));
-app.value('pages', 1);
 
 app.factory('mySocket', function(socketFactory) {
     var myIoSocket = io.connect('http://localhost:3000');
@@ -255,7 +254,7 @@ app.controller('SignupController', function ($location, $scope, $rootScope, user
     };
 });
 
-app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatform, $location, $ionicPush, $ionicScrollDelegate, $ionicSideMenuDelegate, $ionicPopup, stateHandler, toaster, messageManager, mySocket, userManager, messageAudio, autoLoginManager, setNrOfUnreadMessages, pages) {
+app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatform, $location, $ionicPush, $ionicScrollDelegate, $ionicSideMenuDelegate, $ionicPopup, stateHandler, toaster, messageManager, mySocket, userManager, messageAudio, autoLoginManager, setNrOfUnreadMessages) {
     mySocket.removeAllListeners();
 
     $ionicPlatform.on('pause', stateHandler.goIdle);
@@ -266,11 +265,15 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
     });
 
     $scope.loadMoreMessages = function() {
-        pages++;
-        messageManager.getMessages($rootScope.selectedChatroom.id, pages).then(function(res) {
-            $scope.doScrollTop = true;
-            $rootScope.messages = res.data;
-        });
+      console.log($rootScope.messages);
+      var lastMessageId = $rootScope.messages[$rootScope.messages.length - 1]._id;
+      console.log(lastMessageId);
+
+      messageManager.getMessages($rootScope.selectedChatroom.id, lastMessageId).then(function(res) {
+        $scope.doScrollTop = true;
+        console.log(res.data);
+        $rootScope.messages = $rootScope.messages.concat(res.data);
+      });
     };
 
     $scope.showLoadMoreMessages = function() {
@@ -629,7 +632,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
 }
 });
 
-app.controller('LeftSideController', function ($rootScope, $location, $timeout, $ionicSideMenuDelegate, $ionicScrollDelegate, $scope, messageManager, mySocket, toaster, setNrOfUnreadMessages, pages) {
+app.controller('LeftSideController', function ($rootScope, $location, $timeout, $ionicSideMenuDelegate, $ionicScrollDelegate, $scope, messageManager, mySocket, toaster, setNrOfUnreadMessages) {
     $scope.newChatroom = {};
 
     $scope.$on("keyboardShowHideEvent", function() {
@@ -720,7 +723,6 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
             });
         });
         $scope.changeChatroom = function (index) {
-            pages = 1;
             $rootScope.isPrivate = false;
             $rootScope.selected = index;
             //Leave chatroom if already in one.
