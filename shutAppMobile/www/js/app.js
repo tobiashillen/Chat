@@ -333,6 +333,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
                 setNrOfUnreadMessages.set($rootScope.offlineConversations, $rootScope.unreadMessages);
 
                 messageAudio.play();
+                $ionicScrollDelegate.scrollBottom();
             }
         });
         mySocket.on('connect message', function (msg) {
