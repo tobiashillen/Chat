@@ -485,7 +485,7 @@ io.on('connection', function(socket){
             function sendPushNotification() {
                 db.collection('privateMessages').find({"recipientId": message.recipientId, "unread": true}).count().then(function(nrOfUnread) {
                     var pushNotification = new gcm.Message({
-                        "collapseKey": message.senderId,
+                        //"collapseKey": message.senderId,
                         "data": {
                             "title": "ShutApp",
                             "body": message.senderName + " skriver: " + message.text,
