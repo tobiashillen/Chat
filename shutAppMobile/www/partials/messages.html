@@ -1,7 +1,7 @@
 <ion-view view-title="Meddelanden">
     <p id="noMessagesMessage" ng-show="noMessages"> Det finns inga meddelanden att visa i denna konversation. </p>
     <ion-content class="messages-content has-header" ng-class="{'android-margin-bottom': $root.android}" padding="true">
-      <div id="chat-messages">
+    <div id="chat-messages" ng-class="{'extra-padding-bottom' : unreadMessages.length>0}">
         <div ng-click="loadMoreMessages()" ng-show="showLoadMoreMessages()">Ladda mer meddelanden</div>
         <div class="chat-message" ng-repeat="message in messages | orderBy:'timestamp' track by $index">
 			{{historyMessage.timestamp | date : 'MMM d, HH:mm'}}

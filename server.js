@@ -125,19 +125,28 @@ app.post('/mark-read-messages', function(req, res) {
 });
 
 app.get('/messages', function(req, res) {
+  console.log('the query: ', req.query);
+    var findObject = {};
     if(req.query.user) {
         var collection = 'privateMessages';
         var user = req.query.user;
         var otherUser = req.query.otheruser;
-        var findObject = {$or: [ {senderId: user, recipientId: otherUser}, {senderId: otherUser, recipientId: user} ] };
+        findObject = {$or: [ {senderId: user, recipientId: otherUser}, {senderId: otherUser, recipientId: user} ] };
     } else {
         var collection = 'chatMessages';
-        var findObject = {"chatroom": req.query.chatroom};
+        findObject = {"chatroom": req.query.chatroom};
+        if(req.query.lastMessageId) {
+          console.log('id before: ', req.query.lastMessageId);
+          var id = ObjectID(req.query.lastMessageId);
+          findObject._id = {"$lt": id};
+        }
     }
 
+    console.log('query after', findObject);
     var pageSize = 20;
-    var pages = req.query.pages ? req.query.pages : 1;
-    db.collection(collection).find(findObject).sort([['timestamp', -1]]).limit(pageSize * pages).toArray(function(err, result) {
+    db.collection(collection).find(findObject).sort([['timestamp', -1]]).limit(pageSize).toArray(function(err, result) {
+      console.log('err: ', err);
+      console.log('result: ', result);
         if(err) {
             res.status(500).send({});
         }
@@ -367,18 +376,16 @@ app.post('/users/update', function (req, res) {
     var newUsername = req.body.username.toLowerCase();
 
     if (!newUsername.match(/[0-9a-zA-Z]{3,20}/)) res.status(400).send({});
-    db.collection('users').findOne({"username": newUsername}).then(function(doc) {
-        if(!doc) {
-            db.collection('users').findOneAndUpdate({"_id": ObjectID(id) }, { $set: {"username": newUsername}}).then(function(err) {
-                console.log('updated username');
-                updateMessages();
-                res.status(200).send({});
-            });
-        } else {
-            console.log('failed update');
-            res.status(400).send({});
-        }
-    })
+
+    db.collection('users').findOneAndUpdate({"_id": ObjectID(id) }, { $set: {"username": newUsername}})
+    .then(function(result) {
+        console.log('Updated username for user with id: ' + id + " to " + newUsername );
+        updateMessages();
+        res.status(200).send({});
+    }, function(error) {
+        console.log('Failed to update username for user with id: ' + id);
+        res.status(400).send({});
+    });
 
     //Updates all messages in the database with the new username.
     updateMessages = function() {
@@ -394,7 +401,7 @@ app.post('/users/update', function (req, res) {
         });
         for(var i = 0; i < activeUsers.length; i++) {
             if(activeUsers[i].id == id) {
-                console.log('changed username in activeUsers.');
+                console.log('Changed username in activeUsers.');
                 activeUsers[i].name = newUsername;
                 io.emit('active users', activeUsers);
             }

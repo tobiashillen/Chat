@@ -47,10 +47,9 @@ app.run(function($ionicPlatform, $rootScope, $ionicPopup, $state) {
 });
 
 app.value('messageAudio', new Audio('sounds/meow.mp3'));
-app.value('pages', 1);
 
 app.factory('mySocket', function(socketFactory) {
-    var myIoSocket = io.connect('http://shutapp.nu:3000');
+    var myIoSocket = io.connect('http://localhost:3000');
     socket = socketFactory({
         ioSocket: myIoSocket
     });
@@ -255,7 +254,7 @@ app.controller('SignupController', function ($location, $scope, $rootScope, user
     };
 });
 
-app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatform, $location, $ionicPush, $ionicScrollDelegate, $ionicSideMenuDelegate, $ionicPopup, stateHandler, toaster, messageManager, mySocket, userManager, messageAudio, autoLoginManager, setNrOfUnreadMessages, pages) {
+app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatform, $location, $ionicPush, $ionicScrollDelegate, $ionicSideMenuDelegate, $ionicPopup, stateHandler, toaster, messageManager, mySocket, userManager, messageAudio, autoLoginManager, setNrOfUnreadMessages) {
     mySocket.removeAllListeners();
 
     userManager.getPicture($rootScope.user.id).then(function(res) {
@@ -278,11 +277,15 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
     });
 
     $scope.loadMoreMessages = function() {
-        pages++;
-        messageManager.getMessages($rootScope.selectedChatroom.id, pages).then(function(res) {
-            $scope.doScrollTop = true;
-            $rootScope.messages = res.data;
-        });
+      console.log($rootScope.messages);
+      var lastMessageId = $rootScope.messages[$rootScope.messages.length - 1]._id;
+      console.log(lastMessageId);
+
+      messageManager.getMessages($rootScope.selectedChatroom.id, lastMessageId).then(function(res) {
+        $scope.doScrollTop = true;
+        console.log(res.data);
+        $rootScope.messages = $rootScope.messages.concat(res.data);
+      });
     };
 
     $scope.showLoadMoreMessages = function() {
@@ -462,12 +465,6 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
                     templateUrl: 'partials/editUser.html'
                 });
 
-                //Temp function.
-                $scope.banUser = function(){
-                    console.log("Bann!");
-                    popup.close();
-                }
-
                 $scope.deleteUser = function(){
                     userManager.removeUser({
                         "userId": $rootScope.user.id,
@@ -480,16 +477,16 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
                     }, function (res) {
                         switch(res.status) {
                             case 400:
-                            console.log("User is not authorised to delete users.");
-                            toaster.toast('Du måste vara admin för att ta bort användare.', 'short', 'bottom');
-                            break;
+                                console.log("User is not authorised to delete users.");
+                                toaster.toast('Du måste vara admin för att ta bort användare.', 'short', 'bottom');
+                                break;
                             case 500:
-                            console.log("Database error: User not found.");
-                            toaster.toast('Databasfel: Användaren kunde inte raderas.', 'short', 'bottom');
-                            break;
+                                console.log("Database error: User not found.");
+                                toaster.toast('Databasfel: Användaren kunde inte raderas.', 'short', 'bottom');
+                                break;
                             default:
-                            console.log("Unknown error.");
-                            toaster.toast('Okänt fel.', 'short', 'bottom');
+                                console.log("Unknown error.");
+                                toaster.toast('Okänt fel.', 'short', 'bottom');
                         }
                     });
                     popup.close();
@@ -643,7 +640,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
 }
 });
 
-app.controller('LeftSideController', function ($rootScope, $location, $timeout, $ionicSideMenuDelegate, $ionicScrollDelegate, $scope, messageManager, mySocket, toaster, setNrOfUnreadMessages, pages) {
+app.controller('LeftSideController', function ($rootScope, $location, $timeout, $ionicSideMenuDelegate, $ionicScrollDelegate, $scope, messageManager, mySocket, toaster, setNrOfUnreadMessages) {
     $scope.newChatroom = {};
 
     $scope.$on("keyboardShowHideEvent", function() {
@@ -734,7 +731,6 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
             });
         });
         $scope.changeChatroom = function (index) {
-            pages = 1;
             $rootScope.isPrivate = false;
             $rootScope.selected = index;
             //Leave chatroom if already in one.
@@ -792,9 +788,7 @@ app.controller('SettingsController', function ($location, $scope, $rootScope, $c
     function onPhotoSuccess(imageData) {
       var image = "data:image/jpeg;base64," + imageData;
       userManager.uploadPicture({"image": image, "user": $rootScope.user.id});
-      userManager.getPicture($rootScope.user.id).then(function(res) {
-        $scope.getSettingsImage($rootScope.user);
-      });
+      $scope.getSettingsImage($rootScope.user);
       $rootScope.user.hasImage = true;
       toaster.toast("Din bild har sparats.", 'short', 'bottom');
     }
