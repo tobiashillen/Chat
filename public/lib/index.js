@@ -1,5 +1,5 @@
 var lib = angular.module('lib', []);
-var serverUrl = 'http://shutapp.nu:3000';
+var serverUrl = 'http://localhost:3000';
 
 lib.factory('userManager', function ($http) {
     var userManager = {};
@@ -23,6 +23,12 @@ lib.factory('userManager', function ($http) {
     };
     userManager.removeUser = function (user) {
         return $http.post(serverUrl + '/users/remove', user);
+    };
+    userManager.uploadPicture = function(userAndImage) {
+        return $http.post(serverUrl + '/upload', userAndImage);
+    };
+    userManager.getPicture = function(userId) {
+        return $http.get(serverUrl + '/picture/' + userId);
     };
     return userManager;
 });

@@ -8,6 +8,7 @@ var multer  = require('multer')
 var bcrypt = require('bcrypt');
 var cors = require('cors');
 var gcm = require('node-gcm');
+var fs = require('fs');
 const saltRounds = 10;
 
 var app = express();
@@ -25,7 +26,8 @@ var filename;
 //push notifications
 var sender = new gcm.Sender('AAAALZ3KnzQ:APA91bEqXgPxY2rQAE8G78hqauB-bo3gdHRKzcOZsx5_1WLfjcAUdnz94z9ol9jwNelj1oc_gHJeOsDtYk-cvVxcDh-FQejjid1uD4xZwSD10T6MjNGcERG6ydft6wQWS6VrzRggYTH4');
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '5mb', extended: true}));
+app.use(bodyParser.urlencoded({limit: '5mb', extended: true}));
 app.use(express.static(__dirname + '/public'));
 app.use(cors());
 
@@ -115,7 +117,7 @@ app.get('/messages', function(req, res) {
 });
 
 // Save users profile picture on disc. See multer.discStorage
-app.post('/upload', upload.single('avatar'), function (req, res, next) {
+/*app.post('/upload', upload.single('avatar'), function (req, res, next) {
     //save file path to user collection in database
     db.collection('users').findOneAndUpdate(
         {"_id": ObjectID(req.body.userid) },
@@ -124,7 +126,7 @@ app.post('/upload', upload.single('avatar'), function (req, res, next) {
         res.status(201).send();
     });
     res.status(200).send();
-});
+});*/
 
 //Get list of users with which we have had a conversation
 app.get('/conversations', function(req, res) {
@@ -235,19 +237,39 @@ app.post('/chatrooms/add', function(req, res) {
     })
 });
 
-
 app.get('/searchUserMessages', function(req, res) {
     var userName = req.query.userName;
     db.collection('chatMessages').find({"senderName": userName}, {"timestamp": 1, "text": 1, "senderName": 1, "_id": 0}).toArray(function(err, result) {
-    if(err) {
-        res.status(500).send({});
+        if(err) {
+            res.status(500).send({});
+        }
+        res.status(200).send(result);
+    });
+});
+
+app.post('/upload', function(req, res) {
+    var image = req.body.image;
+    var userId = req.body.user;
+    var base64 = image.replace(/^data:image\/jpeg;base64,/, "");
+
+    fs.writeFile(__dirname + "/uploads/" + userId + ".jpg", base64, 'base64', function(err) {
+        console.log(err);
+    });
+    res.status(200).send();
+});
+
+app.get('/picture/:userId', function(req, res) {
+    var filePath = __dirname + "/uploads/" + req.params.userId + ".jpg";
+    var base64 = fileToBase64(filePath);
+
+    function fileToBase64(file) {
+        // read binary data
+        var image = fs.readFileSync(file);
+        // convert binary data to base64 encoded string
+        return new Buffer(image).toString('base64');
     }
-    res.status(200).send(result);
+    res.status(200).send("data:image/jpeg;base64," + base64);
 });
-});
-
-
-
 
 app.post('/signup', function(req, res) {
     //all usernames are stored as lowercase for simplicity
@@ -375,7 +397,6 @@ app.get('/login/:username/:password', function (req, res) {
             var loginObj = {
                 _id: user._id,
                 username: user.username,
-                image: user.image,
                 redirect: 'messages'
             };
             if(user.admin) loginObj.admin = true;

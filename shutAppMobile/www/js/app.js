@@ -49,7 +49,7 @@ app.run(function($ionicPlatform, $rootScope, $ionicPopup, $state) {
 app.value('messageAudio', new Audio('sounds/meow.mp3'));
 
 app.factory('mySocket', function(socketFactory) {
-    var myIoSocket = io.connect('http://shutapp.nu:3000');
+    var myIoSocket = io.connect('http://localhost:3000');
     socket = socketFactory({
         ioSocket: myIoSocket
     });
@@ -178,8 +178,7 @@ app.controller('LoginController', function ($rootScope, $scope, $location, userM
                 console.log('Login successful.');
                 $rootScope.user = {
                     id: res.data._id,
-                    name: res.data.username,
-                    image: res.data.image
+                    name: res.data.username
                 };
                 if(res.data.admin) $rootScope.user.admin = true;
                 autoLoginManager.addUser($rootScope.user);
@@ -239,6 +238,18 @@ app.controller('SignupController', function ($location, $scope, $rootScope, user
 
 app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatform, $location, $ionicPush, $ionicScrollDelegate, $ionicSideMenuDelegate, $ionicPopup, stateHandler, toaster, messageManager, mySocket, userManager, messageAudio, autoLoginManager) {
     mySocket.removeAllListeners();
+
+    userManager.getPicture($rootScope.user.id).then(function(res) {
+      if (res.data) {
+        $rootScope.user.hasImage = true;
+      }
+    });
+
+    $scope.getMessageImage = function(message) {
+      userManager.getPicture(message.senderId).then(function(res) {
+        message.senderImage = res.data;
+      });
+    };
 
     $ionicPlatform.on('pause', stateHandler.goIdle);
     $ionicPlatform.on('resume', stateHandler.goActive);
@@ -476,10 +487,11 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
         var newMessage = {
             "senderId": $rootScope.user.id,
             "senderName": $rootScope.user.name,
-            "senderImage": $rootScope.user.image,
+            "hasImage": $rootScope.user.hasImage,
             "text": $scope.text.message,
             "chatroom": $rootScope.selectedChatroom.id
         };
+        console.log(newMessage);
         if($rootScope.user.admin) newMessage.admin = true;
         //Send message to the current chatroom
         if (newMessage.text != "") {
@@ -497,7 +509,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
         var newPrivateMessage = {
             "senderId": $rootScope.user.id,
             "senderName": $rootScope.user.name,
-            "senderImage": $rootScope.user.image,
+            "hasImage": $rootScope.user.hasImage,
             "text": $scope.text.message,
             "recipientId": $rootScope.privateRecipient.id,
             "recipientName": $rootScope.privateRecipient.name
@@ -646,45 +658,28 @@ app.controller('SettingsController', function ($location, $scope, $rootScope, $c
     $location.path("/messages");
   };
 
+  $scope.getSettingsImage = function(user) {
+    userManager.getPicture(user.id).then(function(res) {
+      user.image = res.data;
+    });
+  };
+
   $scope.takePicture = function() {
-    navigator.camera.getPicture(onPhotoSuccess, onFail, { quality: 50 });
+    navigator.camera.getPicture(onPhotoSuccess, onFail, { quality: 50, encodingType: Camera.EncodingType.JPEG,
+      destinationType: Camera.DestinationType.DATA_URL, sourceType: Camera.PictureSourceType.CAMERA });
 
     function onPhotoSuccess(imageData) {
-      $rootScope.user.image = imageData;
-      movePic(imageData);
+      var userImage = document.getElementsByClassName('full-image')[0];
+      var image = "data:image/jpeg;base64," + imageData;
+      userManager.uploadPicture({"image": image, "user": $rootScope.user.id});
+      userManager.getPicture($rootScope.user.id).then(function(res) {
+        userImage.src = res.data;
+      });
+      $rootScope.user.hasImage = true;
     }
 
     function onFail(message) {
       console.log("Kunde inte ladda in bilden: " + message);
-    }
-
-    function movePic(file) {
-      window.resolveLocalFileSystemURL(file, resolveOnSuccess, resOnError);
-    }
-    function resolveOnSuccess(entry){
-      var n = $rootScope.user.id;
-      //new file name
-      var newFileName = n + ".jpg";
-      var myFolderApp = "EasyPacking";
-
-      window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fileSys) {
-          //The folder is created if doesn't exist
-          fileSys.root.getDirectory( myFolderApp,
-            {create:true, exclusive: false},
-            function(directory) {
-              entry.moveTo(directory, newFileName,  successMove, resOnError);
-            },
-            resOnError);
-        },
-        resOnError);
-    }
-
-    function successMove(entry) {
-      console.log("HEJHEJ");
-    }
-
-    function resOnError(error) {
-      alert(error.code);
     }
   };
 
