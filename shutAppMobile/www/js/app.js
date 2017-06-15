@@ -513,10 +513,15 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
                     templateUrl: 'partials/editMessage.html'
                 });
 
-                $scope.saveMessage = function() {
-                    message.text = $scope.editMessage.text;
+                $scope.saveMessage = function(updatedMessage) {
+                  if(updatedMessage) {
+                    message.text = updatedMessage;
                     messageManager.updateMessage(message);
                     popup.close();
+                  } else {
+                    console.log('Texten uppfyller inte kraven för att posta.')
+                    toaster.toast('Texten uppfyller inte kraven för att posta.', 'short', 'bottom');
+                  }
                 };
 
                 $scope.cancelMessage = function() {
