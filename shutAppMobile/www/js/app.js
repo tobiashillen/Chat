@@ -231,8 +231,8 @@ app.controller('SignupController', function ($location, $scope, $rootScope, user
                 password: signup.password
             }).then(function (res) { //Successful codes 100-399.
                 console.log("Signup OK. Redirecting to login.");
-                toaster.toast("Användare registrerad.", "long", "bottom");
                 $location.path(res.data.redirect);
+                toaster.toast("Användare registrerad.", "long", "bottom");
             }, function (res) { //Failed codes 400-599+?
                 console.log("Signup failed.");
                 var message = "";
@@ -319,7 +319,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
                   recipientId: $rootScope.user.id
                 };
                 messageManager.markReadMessages(senderObj).then(function(res) {
-                    
+
                 });
             } else {
                 if(!$rootScope.newMessagesSenderIds.includes(message.senderId)) {
@@ -331,7 +331,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
                 //Maybe put an if statement here
                 setNrOfUnreadMessages.set($rootScope.activeUsers, $rootScope.unreadMessages);
                 setNrOfUnreadMessages.set($rootScope.offlineConversations, $rootScope.unreadMessages);
-                
+
                 messageAudio.play();
             }
         });
@@ -378,7 +378,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
         }
 
         $rootScope.changeRecipient = function changeRecipient(recipient) {
-            
+
             if (!$rootScope.user) {
                 console.log("User not logged in! Redirecting to login.");
                 $location.path('/');
