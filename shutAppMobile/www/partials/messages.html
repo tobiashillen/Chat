@@ -24,7 +24,7 @@
       Du har olästa meddelanden.
       </div>
     </ion-content>
-    <div keyboard-attach class="list light-grey bottommsg message-input-container">
+    <div ng-show="monkey.showMessageInputContainer" keyboard-attach class="list light-grey bottommsg message-input-container">
       <div class="item item-input-inset light-grey message-input">
         <label class="item-input-wrapper line-light-grey nopadtop">
           <textarea onkeyup="limitTextarea(this, 5, 255)" msd-elastic maxlength="255" class="line-light-grey message-input-field" rows="5" type="text" placeholder="Skriv ditt meddelande..." ng-model="text.message">

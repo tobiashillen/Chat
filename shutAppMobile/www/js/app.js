@@ -550,6 +550,15 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
     $rootScope.toggleLeft = function() {
         $ionicSideMenuDelegate.toggleLeft();
     };
+
+    // Toggle show/hide input message container. We want to hide the container
+    // after making a search, and show it again when menu-toggle button is presset.
+    $rootScope.inputMessages = {};
+    $rootScope.inputMessages.showContainer = true;
+
+     $scope.toggleMessageInputContainer = function(){
+        $rootScope.inputMessages.showContainer = true;
+    };
 }
 });
 
@@ -666,9 +675,11 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
             $rootScope.person.name;
             messageManager.getHistoricMessages($rootScope.person.name).then(function(res) {
                 $rootScope.messages = res.data;
-                console.log(res.data);
+                //console.log(res.data);
             });
             $scope.searchMode = false;
+            $rootScope.messagesBarTitle = $rootScope.person.name;
+            $rootScope.inputMessages.showContainer = false;
         } else {
             $scope.searchMode = true;
         }
