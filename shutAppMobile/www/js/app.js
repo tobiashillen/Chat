@@ -102,13 +102,15 @@ app.factory('setNrOfUnreadMessages', function() {
     return {
         set: function(userList, unreadMessages) {
             for(var i=0; i<userList.length; i++) {
-                for(var j=0; j<unreadMessages.length; j++) {
-                    if(unreadMessages[j].senderId == userList[i].id) {
-                        userList[i].nrOfMessages = unreadMessages[j].nrOfMessages;
-                    }
+                var senderIds = unreadMessages.map(x=>x.senderId);
+                if(senderIds.includes(userList[i].id)) {
+                    userList[i].nrOfMessages = unreadMessages[senderIds.indexOf(userList[i].id)].nrOfMessages;
+                } else {
+                    userList[i].nrOfMessages = "";
                 }
             }
-            console.log("userList: ", userList);
+            var userListStr = userList.toString();
+            console.log("userList: " + userListStr);
         }
     }
 });
@@ -294,7 +296,6 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
 
         $scope.text = {};
         $scope.text.message = "";
-        $rootScope.newMessagesSenderIdsSenderIds = [];
         mySocket.connect();
         mySocket.on('chatroom message', function (msg) {
             $rootScope.messages.push(msg);
@@ -322,8 +323,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
 
                 });
             } else {
-                if(!$rootScope.newMessagesSenderIds.includes(message.senderId)) {
-                    $rootScope.newMessagesSenderIds.push(message.senderId);
+                if(!$rootScope.unreadMessages.map(x=>x.senderId).includes(message.senderId)) {
                     $rootScope.unreadMessages.push({senderId: message.senderId, nrOfMessages: 1});
                 } else {
                     $rootScope.unreadMessages[$rootScope.unreadMessages.map(x=>x.senderId).indexOf(message.senderId)].nrOfMessages++;
@@ -351,12 +351,12 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
         //senderArray contains objects with senderId and nrOfMessages
         mySocket.on('unread messages', function(senderArray) {
             console.log("got unread message: ", senderArray);
-            $rootScope.newMessagesSenderIds = senderArray.map(x=>x.senderId);
+            var unreadMessagesSenderIds = senderArray.map(x=>x.senderId);
             $rootScope.unreadMessages = senderArray;
             //In case one of the users who have written to us is already selected
             //(can happen when we open the app from a push notification)
-            if($rootScope.isPrivate && $rootScope.newMessagesSenderIds.includes($rootScope.privateRecipient.id)) {
-                $rootScope.newMessagesSenderIds.splice($rootScope.newMessagesSenderIds.indexOf($rootScope.privateRecipient.id), 1);
+            if($rootScope.isPrivate && unreadMessagesSenderIds.includes($rootScope.privateRecipient.id)) {
+                $rootScope.unreadMessages.splice(unreadMessagesSenderIds.indexOf($rootScope.privateRecipient.id), 1);
             }
             if($rootScope.activeUsers) {
               setNrOfUnreadMessages.set($rootScope.activeUsers, $rootScope.unreadMessages);
@@ -402,13 +402,20 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
                 messageManager.markReadMessages({senderId: $rootScope.privateRecipient.id, recipientId: $rootScope.user.id}).then(function(res) {
                     console.log("marked read messages");
                 });
-                if($rootScope.newMessagesSenderIds.includes(recipient.id)) {
-                    $rootScope.newMessagesSenderIds.splice($rootScope.newMessagesSenderIds.indexOf(recipient.id), 1);
-                    $rootScope.unreadMessages.splice($rootScope.unreadMessages.map(x=>x.senderId).indexOf(recipient.id), 1);
+                var unreadMessagesSenderIds = $rootScope.unreadMessages.map(x=>x.senderId);
+                if(unreadMessagesSenderIds.includes(recipient.id)) {
+                    $rootScope.unreadMessages.splice(unreadMessagesSenderIds.indexOf(recipient.id), 1);
+                    /*
                     var activeUserIds = $rootScope.activeUsers.map(x=>x.id);
                     if(activeUserIds.includes(recipient.id)){
                         $rootScope.activeUsers[activeUserIds.indexOf(recipient.id)].nrOfMessages = "";
                     }
+                    */
+                    setNrOfUnreadMessages.set($rootScope.activeUsers, $rootScope.unreadMessages);
+                    console.log("I changerecipient, activeUsers: " + $rootScope.activeUsers.map(x=>JSON.stringify(x)).toString() );
+                    setNrOfUnreadMessages.set($rootScope.offlineConversations, $rootScope.unreadMessages);
+                    console.log("I changerecipient, offlineConversations: " + $rootScope.offlineConversations.map(x=>JSON.stringify(x)).toString() );
+
                 }
             }
         };
@@ -537,6 +544,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
         }
         mySocket.emit('join chatroom', $rootScope.selectedChatroom.id);
         $rootScope.messagesBarTitle = "#general";
+        $rootScope.isPrivate = false;
     }
     if (!$rootScope.isPrivate) {
         messageManager.getMessages($rootScope.selectedChatroom.id).then(function(res) {
@@ -762,6 +770,7 @@ app.controller('SettingsController', function ($location, $scope, $rootScope, us
         $rootScope.unreadMessages = undefined;
         $rootScope.offlineConversations = undefined;
         $rootScope.activeUsers = undefined;
+        $rootScope.messages = undefined;
         mySocket.disconnect();
         autoLoginManager.removeUser();
         $location.path('/login');
