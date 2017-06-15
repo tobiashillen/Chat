@@ -56,14 +56,11 @@ lib.factory('messageManager', function ($http) {
     messageManager.postPrivateMessage = function (newPrivateMessage) {
         return $http.post(serverUrl + '/private-messages', newPrivateMessage);
     };
-
     messageManager.getHistoricMessages = function (user) {
         return $http.get(serverUrl + '/searchUserMessages?userName=' + user);
 	};
-
     messageManager.updateMessage = function (message) {
         return $http.post(serverUrl + '/messages/update', message);
     };
-
     return messageManager;
 });
