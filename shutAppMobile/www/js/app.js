@@ -786,7 +786,8 @@ app.controller('SettingsController', function ($location, $scope, $rootScope, $c
 
   $scope.takePicture = function() {
     navigator.camera.getPicture(onPhotoSuccess, onFail, { quality: 50, encodingType: Camera.EncodingType.JPEG,
-      destinationType: Camera.DestinationType.DATA_URL, sourceType: Camera.PictureSourceType.CAMERA });
+      destinationType: Camera.DestinationType.FILE_URI, sourceType: Camera.PictureSourceType.CAMERA, targetWidth: 200,
+      targetHeight: 200, correctOrientation: true, allowEdit: true, cameraDirection: 1 });
 
     function onPhotoSuccess(imageData) {
       var image = "data:image/jpeg;base64," + imageData;
