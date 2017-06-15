@@ -50,7 +50,7 @@ app.value('messageAudio', new Audio('sounds/meow.mp3'));
 app.value('pages', 1);
 
 app.factory('mySocket', function(socketFactory) {
-    var myIoSocket = io.connect('http://localhost:3000');
+    var myIoSocket = io.connect('http://shutapp.nu:3000');
     socket = socketFactory({
         ioSocket: myIoSocket
     });
