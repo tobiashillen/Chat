@@ -340,18 +340,16 @@ app.post('/users/update', function (req, res) {
     var newUsername = req.body.username.toLowerCase();
 
     if (!newUsername.match(/[0-9a-zA-Z]{3,20}/)) res.status(400).send({});
-    db.collection('users').findOne({"username": newUsername}).then(function(doc) {
-        if(!doc) {
-            db.collection('users').findOneAndUpdate({"_id": ObjectID(id) }, { $set: {"username": newUsername}}).then(function(err) {
-                console.log('updated username');
-                updateMessages();
-                res.status(200).send({});
-            });
-        } else {
-            console.log('failed update');
-            res.status(400).send({});
-        }
-    })
+
+    db.collection('users').findOneAndUpdate({"_id": ObjectID(id) }, { $set: {"username": newUsername}})
+    .then(function(result) {
+        console.log('Updated username for user with id: ' + id + " to " + newUsername );
+        updateMessages();
+        res.status(200).send({});
+    }, function(error) {
+        console.log('Failed to update username for user with id: ' + id);
+        res.status(400).send({});
+    });
 
     //Updates all messages in the database with the new username.
     updateMessages = function() {
@@ -367,7 +365,7 @@ app.post('/users/update', function (req, res) {
         });
         for(var i = 0; i < activeUsers.length; i++) {
             if(activeUsers[i].id == id) {
-                console.log('changed username in activeUsers.');
+                console.log('Changed username in activeUsers.');
                 activeUsers[i].name = newUsername;
                 io.emit('active users', activeUsers);
             }
