@@ -785,9 +785,7 @@ app.controller('SettingsController', function ($location, $scope, $rootScope, $c
     function onPhotoSuccess(imageData) {
       var image = "data:image/jpeg;base64," + imageData;
       userManager.uploadPicture({"image": image, "user": $rootScope.user.id});
-      userManager.getPicture($rootScope.user.id).then(function(res) {
-        $scope.getSettingsImage($rootScope.user);
-      });
+      $scope.getSettingsImage($rootScope.user);
       $rootScope.user.hasImage = true;
       toaster.toast("Din bild har sparats.", 'short', 'bottom');
     }
