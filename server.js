@@ -237,7 +237,7 @@ app.post('/chatrooms/remove', function(req, res) {
                     console.log('Removed room ' + id);
                     res.status(200).send();
                 } else {
-                    console.log('Faiöed to remove room ' + id);
+                    console.log('Failed to remove room ' + id);
                     res.status(500).send();
                 }
             });
