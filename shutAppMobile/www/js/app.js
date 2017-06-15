@@ -429,12 +429,6 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
                     templateUrl: 'partials/editUser.html'
                 });
 
-                //Temp function.
-                $scope.banUser = function(){
-                    console.log("Bann!");
-                    popup.close();
-                }
-
                 $scope.deleteUser = function(){
                     userManager.removeUser({
                         "userId": $rootScope.user.id,
@@ -447,16 +441,16 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
                     }, function (res) {
                         switch(res.status) {
                             case 400:
-                            console.log("User is not authorised to delete users.");
-                            toaster.toast('Du måste vara admin för att ta bort användare.', 'short', 'bottom');
-                            break;
+                                console.log("User is not authorised to delete users.");
+                                toaster.toast('Du måste vara admin för att ta bort användare.', 'short', 'bottom');
+                                break;
                             case 500:
-                            console.log("Database error: User not found.");
-                            toaster.toast('Databasfel: Användaren kunde inte raderas.', 'short', 'bottom');
-                            break;
+                                console.log("Database error: User not found.");
+                                toaster.toast('Databasfel: Användaren kunde inte raderas.', 'short', 'bottom');
+                                break;
                             default:
-                            console.log("Unknown error.");
-                            toaster.toast('Okänt fel.', 'short', 'bottom');
+                                console.log("Unknown error.");
+                                toaster.toast('Okänt fel.', 'short', 'bottom');
                         }
                     });
                     popup.close();
