@@ -96,6 +96,7 @@ app.post('/private-messages', function(req, res) {
 });
 
 app.get('/messages', function(req, res) {
+  console.log('lul woot');
     if(req.query.user) {
         var collection = 'privateMessages';
         var user = req.query.user;
@@ -103,10 +104,13 @@ app.get('/messages', function(req, res) {
         var findObject = {$or: [ {senderId: user, recipientId: otherUser}, {senderId: otherUser, recipientId: user} ] };
     } else {
         var collection = 'chatMessages';
-        var findObject = {"chatroom":req.query.chatroom};
+        var findObject = {"chatroom": req.query.chatroom};
     }
 
-    db.collection(collection).find(findObject).toArray(function(err, result) {
+    var pageSize = 20;
+    var pages = req.query.pages ? req.query.pages : 1;
+    db.collection(collection).find(findObject).sort([['timestamp', -1]]).limit(pageSize * pages).toArray(function(err, result) {
+      console.log(result.length);
         if(err) {
             res.status(500).send({});
         }
