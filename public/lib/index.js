@@ -41,8 +41,12 @@ lib.factory('messageManager', function ($http) {
     messageManager.addChatroom = function (newChatroom) {
         return $http.post(serverUrl + '/chatrooms/add', newChatroom);
     };
-    messageManager.getMessages = function (chatroomId) {
-        return $http.get(serverUrl + '/messages?chatroom=' + chatroomId);
+    messageManager.removeChatroom = function (chatroomId) {
+        return $http.post(serverUrl +  '/chatrooms/remove', chatroomId);
+    };
+    messageManager.getMessages = function (chatroomId, pages) {
+        var n = pages ? pages : 1;
+        return $http.get(serverUrl + '/messages?chatroom=' + chatroomId + '&pages=' + n);
     };
     messageManager.getPrivateMessages = function (user, otheruser) {
         return $http.get(serverUrl + '/messages?user=' + user + '&otheruser=' + otheruser);
@@ -54,7 +58,10 @@ lib.factory('messageManager', function ($http) {
         return $http.post(serverUrl + '/messages', newMessage);
     };
     messageManager.postPrivateMessage = function (newPrivateMessage) {
-        return $http.post(serverUrl + '/private-messages', newPrivateMessage);
+        return $http.post(serverUrl + '/private-message', newPrivateMessage);
+    };
+    messageManager.markReadMessages = function (senderIdObj) {
+        return $http.post(serverUrl + '/mark-read-messages', senderIdObj);
     };
     messageManager.getHistoricMessages = function (user) {
         return $http.get(serverUrl + '/searchUserMessages?userName=' + user);

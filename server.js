@@ -47,6 +47,22 @@ mongo.connect('mongodb://shutapp:shutapp123@ds133981.mlab.com:33981/shutapp', fu
         console.log(err);
     }
     db = database;
+
+    db.collection('users').createIndex(
+        { username: 1 },
+        { unique:true },
+        function(err, result) {
+            //Adds unique index for username.
+        }
+    );
+
+    db.collection('users').createIndex(
+        { email: 1 },
+        { unique:true },
+        function(err, result) {
+            //Adds unique index for email.
+        }
+    );
 });
 
 app.use(session({
@@ -84,7 +100,8 @@ app.post('/messages/update', function(req, res) {
     });
 });
 
-app.post('/private-messages', function(req, res) {
+//Denna hette tidigare private-messages
+app.post('/private-message', function(req, res) {
     var newPrivateMessage = req.body;
     newPrivateMessage.timestamp = new Date();
     db.collection('privateMessages').insert(newPrivateMessage).then(function(result) {
@@ -97,6 +114,16 @@ app.post('/private-messages', function(req, res) {
     });
 });
 
+app.post('/mark-read-messages', function(req, res) {
+    console.log("marking message as read");
+    var senderId = req.body.senderId;
+    var recipientId = req.body.recipientId;
+    db.collection('privateMessages').updateMany({"recipientId": recipientId, "senderId": senderId}, { $set: {"unread": false}}).then(function(doc) {
+        console.log("marked messages as read");
+        res.status(200).send({});
+    });
+});
+
 app.get('/messages', function(req, res) {
     if(req.query.user) {
         var collection = 'privateMessages';
@@ -105,10 +132,12 @@ app.get('/messages', function(req, res) {
         var findObject = {$or: [ {senderId: user, recipientId: otherUser}, {senderId: otherUser, recipientId: user} ] };
     } else {
         var collection = 'chatMessages';
-        var findObject = {"chatroom":req.query.chatroom};
+        var findObject = {"chatroom": req.query.chatroom};
     }
 
-    db.collection(collection).find(findObject).toArray(function(err, result) {
+    var pageSize = 20;
+    var pages = req.query.pages ? req.query.pages : 1;
+    db.collection(collection).find(findObject).sort([['timestamp', -1]]).limit(pageSize * pages).toArray(function(err, result) {
         if(err) {
             res.status(500).send({});
         }
@@ -173,24 +202,6 @@ function isAdmin(userId) {
     });
 };
 
-app.post('/chatrooms/remove', function(req, res) {
-    isAdmin(req.body.userId).then(function(admin) {
-        if(admin) {
-            var id = ObjectID(req.body.chatroomId);
-            db.collection('chatrooms').findOneAndDelete({"_id": id}).then(function(cb) {
-                if(cb.value) {
-                    io.emit('refresh chatroom');
-                    res.status(200).send();
-                } else {
-                    res.status(500).send();
-                }
-            });
-        } else {
-            res.status(401).send();
-        }
-    });
-});
-
 app.post('/users/remove', function(req, res) {
     isAdmin(req.body.userId).then(function(admin) {
         if(admin) {
@@ -218,32 +229,23 @@ app.post('/users/remove', function(req, res) {
     });
 });
 
-app.post('/chatrooms/add', function(req, res) {
-    if(req.body.name === undefined || req.body.name.length < 3 || req.body.name.length > 15) return res.status(406).send();
-    var roomName = req.body.name.toLowerCase();
-    db.collection('chatrooms').count({"name": roomName}).then(function(error, result) {
-        if(!error) {
-            db.collection('chatrooms').insertOne({"name": roomName, "users": []}).then(function(cb) {
-                if(cb.result.ok > 0) {
+app.post('/chatrooms/remove', function(req, res) {
+    isAdmin(req.body.userId).then(function(admin) {
+        if(admin) {
+            var id = ObjectID(req.body.chatroomId);
+            db.collection('chatrooms').findOneAndDelete({"_id": id}).then(function(cb) {
+                if(cb.value) {
                     io.emit('refresh chatroom');
-                    res.status(201).send();
+                    console.log('Removed room ' + id);
+                    res.status(200).send();
                 } else {
+                    console.log('Faiöed to remove room ' + id);
                     res.status(500).send();
                 }
             });
         } else {
-            res.status(400).send();
-        };
-    })
-});
-
-app.get('/searchUserMessages', function(req, res) {
-    var userName = req.query.userName;
-    db.collection('chatMessages').find({"senderName": userName}, {"timestamp": 1, "text": 1, "senderName": 1, "_id": 0}).toArray(function(err, result) {
-        if(err) {
-            res.status(500).send({});
+            res.status(401).send();
         }
-        res.status(200).send(result);
     });
 });
 
@@ -268,53 +270,88 @@ app.get('/picture/:userId', function(req, res) {
         // convert binary data to base64 encoded string
         return new Buffer(image).toString('base64');
     }
+
     res.status(200).send("data:image/jpeg;base64," + base64);
 });
 
+app.post('/chatrooms/add', function(req, res) {
+    if(req.body.name === undefined || req.body.name.length < 3 || req.body.name.length > 15) return res.status(406).send();
+    var roomName = req.body.name.toLowerCase();
+    isAdmin(req.body.user.id).then(function(admin) {
+      if(admin) {
+        db.collection('chatrooms').count({"name": roomName}).then(function(error, result) {
+            if(!error) {
+                db.collection('chatrooms').insertOne({"name": roomName, "users": []}).then(function(cb) {
+                    if(cb.result.ok > 0) {
+                        io.emit('refresh chatroom');
+                        res.status(201).send();
+                    } else {
+                        res.status(500).send();
+                    }
+                });
+            } else {
+                res.status(400).send();
+            }
+        });
+      } else {
+        res.status(406).send();
+      }
+    });
+});
+
+app.get('/searchUserMessages', function(req, res) {
+    var userName = req.query.userName;
+    var result = [];
+    // Find chatroom messages
+    db.collection('chatMessages').find({"senderName": userName}, {"timestamp": 1, "text": 1, "senderName": 1, "_id": 0}).toArray(function(err, chatMessagesResult) {
+        if(err) {
+            res.status(500).send({});
+            return;
+        }
+        result = result.concat(chatMessagesResult);
+    });
+    // Find private messages
+    db.collection('privateMessages').find({"senderName": userName}, {"timestamp": 1, "text": 1, "senderName": 1, "_id": 0}).toArray(function(err, privateMessagesResult) {
+        if(err) {
+            res.status(500).send({});
+            return;
+        }
+        result = result.concat(privateMessagesResult);
+        // Send the search result
+        res.status(200).send(result);
+    });
+});
+
 app.post('/signup', function(req, res) {
-    //all usernames are stored as lowercase for simplicity
+    //All usernames are stored as lowercase for simplicity.
     var username = req.body.username.toLowerCase();
     var email = req.body.email.toLowerCase();
     var password = req.body.password;
     if(!email.match(/^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/)
     || !username.match(/[0-9a-zA-Z]{3,20}/)
     || !password.match(/^.{6,50}$/) ) {
-        //400 is "bad request"
-        res.status(400).send({});
+        res.status(400).send({}); //"Bad request"
         return;
     }
-
-    db.collection('users').findOne( { "username": username }, function(err, user) {
-        if(err) {
-            //Server error
-            res.status(500).send(err);
+    //Hashing password and adding user to database.
+    bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
+        if (err) {
+            console.log("Signup-error: Hashing password failed.");
+            res.status(500).send({}); //"Internal server error."
         } else {
-            //if the user does not already exist in the database, create a new user
-            if(user === null) {
-                db.collection('users').findOne( { "email": email }, function(err, user) {
-                    if(err) {
-                        res.status(500).send(err);
-                    } else {
-                        if(user === null) {
-                            //Add user to the database
-                            bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
-                                if (err) {
-                                    console.log(err);
-                                } else {
-                                    db.collection('users').insert({username: username, email: req.body.email, password: hash}).then(function() {
-                                        res.status(201).send({redirect:'/'});
-                                    });
-                                }
-                            });
-                        } else {
-                            res.status(409).send({"reason":"email"});
-                        }
-                    }
-                });
-            } else {
-                //409 means "conflict".
-                res.status(409).send({"reason":"username"});
-            }
+            db.collection('users').insertOne({username: username, email: email, password: hash})
+            .then(function(result) {
+                console.log("Signup successful. Added user: " + username);
+                res.status(201).send({redirect:'/'}); //Must use res-object from post NOT result from db insert.
+            }, function(error) {
+                if (error.errmsg.includes("$email")) {
+                    console.log("Signup-error: Email already in use.");
+                    res.status(409).send({"reason":"email"});
+                } else if (error.errmsg.includes("$username")) {
+                    console.log("Signup-error: Username already in use.");
+                    res.status(409).send({"reason":"username"});
+                }
+            });
         }
     });
 });
@@ -420,25 +457,35 @@ io.on('connection', function(socket){
         }
         if (!isInList) activeUsers.push({ name: socket.username, id: user.id, socketId: socket.id, isIdle: false });
         io.emit('active users', activeUsers);
-        //Search for unread messages in database
-        db.collection("users").findOne({"_id": ObjectID(user.id)}, {"_id": 0, "lastActive": 1}).then(function(obj) {
-            db.collection("privateMessages").find({"recipientId": user.id, "timestamp": {$gt: obj.lastActive}}, {"senderId": 1, "_id": 0}).toArray(function(error, result) {
-                var senders = result.map(x=>x.senderId);
-                var uniqueArray = [];
-                for(var i=0; i<senders.length; i++) {
-                    if(senders.indexOf(senders[i]) == i) {
-                        uniqueArray.push(senders[i]);
+        db.collection('privateMessages').find({"recipientId": user.id, "unread": true}, {"senderId": 1}).toArray(function(err, result) {
+            console.log("i server.js, err unread messages: ", err);
+            console.log("i server.js, resultat unread messages: ", result)
+            var uniqueArray = [];
+            var resultIds = result.map(x=>x.senderId);
+            for(var i=0; i<resultIds.length; i++) {
+                if(resultIds.indexOf(resultIds[i]) == i) {
+                    uniqueArray.push(resultIds[i]);
+                }
+            }
+            var finalResult = [];
+            for(var i=0; i<uniqueArray.length; i++) {
+                var counter = 0;
+                for(var j=0; j<resultIds.length; j++) {
+                    if(uniqueArray[i] == resultIds[j]) {
+                        counter++;
                     }
                 }
-                socket.emit('unread messages', uniqueArray);
-            });
+                finalResult.push({
+                    senderId: uniqueArray[i],
+                    nrOfMessages: counter
+                });
+            }
+            console.log("finalResult for unread messages: ", finalResult);
+            socket.emit('unread messages', finalResult);
         });
-
     });
     socket.on('go idle', function(user) {
         console.log(user.name + " going idle");
-        //Adding timestamp on user to be able to show unread messages on login
-        db.collection('users').update({"_id": ObjectID(user.id)}, {$set: {"lastActive": new Date()}});
         var index = activeUsers.findIndex(function(activeUser) {
             return activeUser.id === user.id;
         });
@@ -459,30 +506,58 @@ io.on('connection', function(socket){
         } else {
             //Prepare notification
             var notid = parseInt(message.senderId, 16) % 2147483647; //2147483647 is max int in Java
+            //Ugly hack to make sure the latest message has been posted to the database
+            setTimeout(sendPushNotification, 300);
+            function sendPushNotification() {
+                db.collection('privateMessages').find({"recipientId": message.recipientId, "unread": true}).count().then(function(nrOfUnread) {
+                    var pushNotification = new gcm.Message({
+                        //"collapseKey": message.senderId,
+                        "data": {
+                            "title": "ShutApp",
+                            "body": message.senderName + " skriver: " + message.text,
+                            "id": message.senderId,
+                            "name": message.senderName,
+                            "notId": notid,
+                            "badge": nrOfUnread
+                        }
+                    });
+                    //get regTokens from database
+                    db.collection('users').findOne({"_id": ObjectID(message.recipientId)},{"devices": 1}).then(function(obj) {
+                        var regTokens = obj.devices;
+                        console.log("tokens: ", obj.devices);
+                        //Send the notification
+                        if(regTokens) {
+                            sender.send(pushNotification, { registrationTokens: regTokens }, function (err, response) {
+                                if (err) console.error("error: ", err);
+                            });
+                        }
+                    });
+                });
+            }
+        }
+        //Send to myself
+        socket.emit('private message', message);
+    });
+    //This will send an invisible push notification, just to change the badge number on the app icon
+    socket.on('change badge', function(userId) {
+        db.collection('privateMessages').find({"recipientId": userId, "unread": true}).count().then(function(nrOfUnread) {
+            console.log("trying to change badge to: " + nrOfUnread);
             var pushNotification = new gcm.Message({
-                "collapseKey": message.senderId,
                 "data": {
-                    "title": "ShutApp",
-                    "body": message.senderName + " skriver: " + message.text,
-                    "id": message.senderId,
-                    "name": message.senderName,
-                    "notId": notid
+                    "badge": nrOfUnread
                 }
             });
-            //get regTokens from database
-            db.collection('users').findOne({"_id": ObjectID(message.recipientId)},{"devices": 1}).then(function(obj) {
+            db.collection('users').findOne({"_id": ObjectID(userId)},{"devices": 1}).then(function(obj) {
                 var regTokens = obj.devices;
-                console.log("tokens: ", obj.devices);
                 //Send the notification
                 if(regTokens) {
                     sender.send(pushNotification, { registrationTokens: regTokens }, function (err, response) {
+                        console.log("sending push notification to change badge");
                         if (err) console.error("error: ", err);
                     });
                 }
             });
-        }
-        //Send to myself
-        socket.emit('private message', message);
+        });
     });
     socket.on('connect message', function(message) {
         socket.broadcast.emit('connect message', message);

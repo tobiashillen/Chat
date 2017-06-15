@@ -46,6 +46,14 @@ form {
   font-size: 1.1em;
   text-align: center;
 }
+
+#noMessagesMessage {
+    font-family: Catamaran-Light, sans-serif;
+    font-size: 1em;
+    padding-top: 3.3rem;
+    padding-left: 0.6rem;
+}
+
 .chat-message {
   font-size: 1em;
   margin-bottom: 0.5rem;
