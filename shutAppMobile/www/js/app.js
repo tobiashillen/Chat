@@ -46,6 +46,7 @@ app.run(function($ionicPlatform, $rootScope, $ionicPopup, $state) {
 });
 
 app.value('messageAudio', new Audio('sounds/meow.mp3'));
+app.value('pages', 1);
 
 app.factory('mySocket', function(socketFactory) {
     var myIoSocket = io.connect('http://localhost:3000');
@@ -254,7 +255,7 @@ app.controller('SignupController', function ($location, $scope, $rootScope, user
     };
 });
 
-app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatform, $location, $ionicPush, $ionicScrollDelegate, $ionicSideMenuDelegate, $ionicPopup, stateHandler, toaster, messageManager, mySocket, userManager, messageAudio, autoLoginManager, setNrOfUnreadMessages) {
+app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatform, $location, $ionicPush, $ionicScrollDelegate, $ionicSideMenuDelegate, $ionicPopup, stateHandler, toaster, messageManager, mySocket, userManager, messageAudio, autoLoginManager, setNrOfUnreadMessages, pages) {
     mySocket.removeAllListeners();
 
     $ionicPlatform.on('pause', stateHandler.goIdle);
@@ -264,12 +265,32 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
         $ionicScrollDelegate.scrollBottom();
     });
 
+    $scope.loadMoreMessages = function() {
+        pages++;
+        messageManager.getMessages($rootScope.selectedChatroom.id, pages).then(function(res) {
+            $scope.doScrollTop = true;
+            $rootScope.messages = res.data;
+        });
+    };
+
+    $scope.showLoadMoreMessages = function() {
+      if($rootScope.messages) {
+        return $rootScope.messages.length >= 20 && $rootScope.messages.length % 20 == 0;
+      }
+      return false;
+    };
+
     $rootScope.$watch('messages', function () {
         if (!$rootScope.messages || $rootScope.messages.length <= 0) {
             $scope.noMessages = true;
         } else {
             $scope.noMessages = false;
-            $ionicScrollDelegate.scrollBottom();
+            if($scope.doScrollTop) {
+              $ionicScrollDelegate.scrollTop();
+              $scope.doScrollTop = false;
+            } else {
+              $ionicScrollDelegate.scrollBottom();
+            }
         }
     }, true);
 
@@ -603,8 +624,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
 }
 });
 
-app.controller('LeftSideController', function ($rootScope, $location, $timeout, $ionicSideMenuDelegate, $ionicScrollDelegate, $scope, messageManager, mySocket, toaster, setNrOfUnreadMessages) {
-
+app.controller('LeftSideController', function ($rootScope, $location, $timeout, $ionicSideMenuDelegate, $ionicScrollDelegate, $scope, messageManager, mySocket, toaster, setNrOfUnreadMessages, pages) {
     $scope.newChatroom = {};
 
     $scope.$on("keyboardShowHideEvent", function() {
@@ -695,6 +715,7 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
             });
         });
         $scope.changeChatroom = function (index) {
+            pages = 1;
             $rootScope.isPrivate = false;
             $rootScope.selected = index;
             //Leave chatroom if already in one.
