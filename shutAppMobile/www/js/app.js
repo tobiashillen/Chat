@@ -777,13 +777,8 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
     $scope.searchUser = function() {
         if($rootScope.person.name) {
             $rootScope.person.name;
-            messageManager.getHistoricMessages($rootScope.person.name).then(function(res) {
-                // Add chatroom name in front of time stamp
-                for(i=0; i<res.data.length; i++){
-                    res.data[i].timestamp = "#" + res.data[i].chatroom + " " + res.data[i].timestamp
-                }
+            messageManager.getHistoricMessages($rootScope.person.name.toLowerCase()).then(function(res) {
                 $rootScope.messages = res.data;
-                //console.log(res.data);
             });
             $scope.searchMode = false;
             $rootScope.messagesBarTitle = $rootScope.person.name;
@@ -792,14 +787,6 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
             $scope.searchMode = true;
         }
     };
-
-  } else {
-    console.log("$rootScope.user is undefined, but WHYYY?!?!");
-    $location.path("/");
-  }
-  	$scope.toggleSearchHistory = function() {
-  		$scope.searchMode = true;
-  	};
 	
   	$rootScope.person = {};
 	
