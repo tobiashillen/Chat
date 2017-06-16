@@ -275,25 +275,34 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
     $scope.$on("keyboardShowHideEvent", function() {
         $ionicScrollDelegate.scrollBottom();
     });
+    $rootScope.status = {
+      moreMessages: true
+    };
 
     $scope.loadMoreMessages = function() {
       console.log($rootScope.messages);
-      var lastMessageId = $rootScope.messages[$rootScope.messages.length - 1]._id;
-      console.log(lastMessageId);
+      var lastMessage = $rootScope.messages.reduce(function (a, b) { return a.timestamp < b.timestamp ? a : b; });
+      console.log(lastMessage._id);
 
-      messageManager.getMessages($rootScope.selectedChatroom.id, lastMessageId).then(function(res) {
+      messageManager.getMessages($rootScope.selectedChatroom.id, lastMessage._id).then(function(res) {
         $scope.doScrollTop = true;
-        console.log(res.data);
+        console.log(res.data.length);
+        $rootScope.status.moreMessages = (res.data.length >= 20) ? true : false;
         $rootScope.messages = $rootScope.messages.concat(res.data);
       });
     };
 
-    $scope.showLoadMoreMessages = function() {
+    $scope.lessThanTwenty = function() {
       if($rootScope.messages) {
-        return $rootScope.messages.length >= 20 && $rootScope.messages.length % 20 == 0;
+        return $rootScope.messages.length < 20;
       }
-      return false;
+      return true;
     };
+
+    $scope.showLoadMoreMessages = function() {
+      if($scope.lessThanTwenty()) return false;
+      return $rootScope.status.moreMessages;
+    }
 
     $rootScope.$watch('messages', function () {
         if (!$rootScope.messages || $rootScope.messages.length <= 0) {
@@ -733,6 +742,7 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
         $scope.changeChatroom = function (index) {
             $rootScope.isPrivate = false;
             $rootScope.selected = index;
+            $rootScope.status.moreMessages = true;
             //Leave chatroom if already in one.
             if ($rootScope.selectedChatroom) {
                 mySocket.emit('leave chatroom', $rootScope.selectedChatroom.id);
