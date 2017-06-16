@@ -724,6 +724,10 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
         if($rootScope.person.name) {
             $rootScope.person.name;
             messageManager.getHistoricMessages($rootScope.person.name).then(function(res) {
+                // Add chatroom name in front of time stamp
+                for(i=0; i<res.data.length; i++){
+                    res.data[i].timestamp = "#" + res.data[i].chatroom + " " + res.data[i].timestamp
+                }
                 $rootScope.messages = res.data;
                 //console.log(res.data);
             });
