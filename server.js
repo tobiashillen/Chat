@@ -125,7 +125,6 @@ app.post('/mark-read-messages', function(req, res) {
 });
 
 app.get('/messages', function(req, res) {
-  console.log('the query: ', req.query);
     var findObject = {};
     if(req.query.user) {
         var collection = 'privateMessages';
@@ -136,17 +135,13 @@ app.get('/messages', function(req, res) {
         var collection = 'chatMessages';
         findObject = {"chatroom": req.query.chatroom};
         if(req.query.lastMessageId) {
-          console.log('id before: ', req.query.lastMessageId);
           var id = ObjectID(req.query.lastMessageId);
           findObject._id = {"$lt": id};
         }
     }
 
-    console.log('query after', findObject);
     var pageSize = 20;
     db.collection(collection).find(findObject).sort([['_id', -1]]).limit(pageSize).toArray(function(err, result) {
-      console.log('err: ', err);
-      console.log('result: ', result);
         if(err) {
             res.status(500).send({});
         }
@@ -487,7 +482,6 @@ io.on('connection', function(socket){
                     nrOfMessages: counter
                 });
             }
-            console.log("finalResult for unread messages: ", finalResult);
             socket.emit('unread messages', finalResult);
         });
     });
@@ -531,7 +525,6 @@ io.on('connection', function(socket){
                     //get regTokens from database
                     db.collection('users').findOne({"_id": ObjectID(message.recipientId)},{"devices": 1}).then(function(obj) {
                         var regTokens = obj.devices;
-                        console.log("tokens: ", obj.devices);
                         //Send the notification
                         if(regTokens) {
                             sender.send(pushNotification, { registrationTokens: regTokens }, function (err, response) {
@@ -548,7 +541,6 @@ io.on('connection', function(socket){
     //This will send an invisible push notification, just to change the badge number on the app icon
     socket.on('change badge', function(userId) {
         db.collection('privateMessages').find({"recipientId": userId, "unread": true}).count().then(function(nrOfUnread) {
-            console.log("trying to change badge to: " + nrOfUnread);
             var pushNotification = new gcm.Message({
                 "data": {
                     "badge": nrOfUnread
