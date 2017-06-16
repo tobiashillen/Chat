@@ -144,7 +144,7 @@ app.get('/messages', function(req, res) {
 
     console.log('query after', findObject);
     var pageSize = 20;
-    db.collection(collection).find(findObject).sort([['timestamp', -1]]).limit(pageSize).toArray(function(err, result) {
+    db.collection(collection).find(findObject).sort([['_id', -1]]).limit(pageSize).toArray(function(err, result) {
       console.log('err: ', err);
       console.log('result: ', result);
         if(err) {
