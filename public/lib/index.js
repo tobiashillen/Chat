@@ -1,5 +1,5 @@
 var lib = angular.module('lib', []);
-var serverUrl = 'http://localhost:3000';
+var serverUrl = 'http://shutapp.nu:3000';
 
 lib.factory('userManager', function ($http) {
     var userManager = {};
@@ -24,6 +24,12 @@ lib.factory('userManager', function ($http) {
     userManager.removeUser = function (user) {
         return $http.post(serverUrl + '/users/remove', user);
     };
+    userManager.uploadPicture = function(userAndImage) {
+        return $http.post(serverUrl + '/upload', userAndImage);
+    };
+    userManager.getPicture = function(userId) {
+        return $http.get(serverUrl + '/picture/' + userId);
+    };
     return userManager;
 });
 
@@ -38,8 +44,12 @@ lib.factory('messageManager', function ($http) {
     messageManager.removeChatroom = function (chatroomId) {
         return $http.post(serverUrl +  '/chatrooms/remove', chatroomId);
     };
-    messageManager.getMessages = function (chatroomId) {
-        return $http.get(serverUrl + '/messages?chatroom=' + chatroomId);
+    messageManager.getMessages = function (chatroomId, lastMessageId) {
+      var request = serverUrl + '/messages?chatroom=' + chatroomId;
+        if(lastMessageId) {
+          request += '&lastMessageId=' + lastMessageId;
+        }
+        return $http.get(request);
     };
     messageManager.getPrivateMessages = function (user, otheruser) {
         return $http.get(serverUrl + '/messages?user=' + user + '&otheruser=' + otheruser);
@@ -55,7 +65,7 @@ lib.factory('messageManager', function ($http) {
     };
     messageManager.markReadMessages = function (senderIdObj) {
         return $http.post(serverUrl + '/mark-read-messages', senderIdObj);
-    }
+    };
     messageManager.getHistoricMessages = function (user) {
         return $http.get(serverUrl + '/searchUserMessages?userName=' + user);
 	};
