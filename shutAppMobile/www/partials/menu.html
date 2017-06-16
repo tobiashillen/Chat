@@ -1,10 +1,10 @@
 <ion-content delegate-handle="side-menu-handle">
   <div class="item item-divider" ng-hide="addMode">
     Chatrum
-    <button ng-click="toggleAddChatroom()" class="button-icon ion-ios-plus-outline add-channel-button">
+    <button ng-click="toggleAddChatroom()" class="button-icon ion-ios-plus-outline add-channel-button" ng-show="user.admin">
     </button>
   </div>
-  <div class="item item-input-inset" ng-show="addMode">
+  <div class="item item-input-inset" ng-show="showEditChatroom()">
     <label class="item-input-wrapper">
       <input type="text" placeholder="Chatroom" ng-model="newChatroom.name">
     </label>
@@ -13,7 +13,7 @@
     </button>
   </div>
   <ion-list>
-    <ion-item ng-repeat="chatroom in chatrooms" ng-click="changeChatroom(chatroom._id)" ng-class="{markedroom: selected==chatroom._id}" menu-close>
+    <ion-item ng-repeat="chatroom in chatrooms" on-hold="holdOnChatroom(chatroom)" ng-click="changeChatroom(chatroom._id)" ng-class="{markedroom: selected==chatroom._id}" menu-close>
       #{{chatroom.name}}
     </ion-item>
   </ion-list>
@@ -23,30 +23,33 @@
 		<button ng-click="toggleSearchHistory()" class="button-icon ion-ios-search search-button">
 	</div>
 	<div ng-show="searchMode">
-		<input type="text" placeholder="Sök på användare" ng-model="person.name" ng-minlength="3" ng-maxlength="20" required>
-      	<button ng-click="searchUser()">
-			sök
-      	</button>
+  <label class="item item-input">
+    <i class="icon ion-search placeholder-icon"></i>
+    <input type="text" placeholder="Sök på användare" ng-model="person.name" ng-minlength="3" ng-maxlength="20" required>
+  </label>
+  <button class="button button-block shutapp-button-search" ng-click="searchUser()" menu-close>
+      sök
+  </button>
 	</div>
   </div>
   <ion-list>
     <ion-item ng-repeat="privateRoom in activeUsers track by privateRoom.id" ng-click="changeRecipient(privateRoom)" on-hold="onHold(privateRoom)" ng-class="{'my-user': user.id == privateRoom.id, markedroom: selected==privateRoom.id, 'idle-user': privateRoom.isIdle}" menu-close>
-      <i ng-class="{icon: true, 'ion-email': hadConversation(privateRoom.id), 'new-message': newMessages.includes(privateRoom.id)}"></i>
-      {{privateRoom.name}}
+      <i ng-class="{icon: true, 'ion-email': hadConversation(privateRoom.id), 'new-message': privateRoom.nrOfMessages>0}"></i>
+      {{privateRoom.name}} {{privateRoom.nrOfMessages}}
     </ion-item>
   </ion-list>
   <div class="item item-divider">
     Tidigare konversationer
   </div>
   <ion-list>
-    <ion-item ng-repeat="privateRoom in offlineConversations track by privateRoom.id" ng-click="changeRecipient(privateRoom)" ng-class="{markedroom: selected==privateRoom.id}" menu-close>
-      <i ng-class="{icon: true, 'ion-email new-message': newMessages.includes(privateRoom.id)}"></i>
-      {{privateRoom.name}}
+    <ion-item ng-repeat="privateRoom in offlineConversations track by privateRoom.id" ng-click="changeRecipient(privateRoom)" on-hold="onHold(privateRoom)" ng-class="{markedroom: selected==privateRoom.id}" menu-close>
+      <i ng-class="{icon: true, 'ion-email new-message': privateRoom.nrOfMessages>0}"></i>
+      {{privateRoom.name}} {{privateRoom.nrOfMessages}}
     </ion-item>
   </ion-list>
 
   <div>
-  	
+
   </div>
 
 </ion-content>
