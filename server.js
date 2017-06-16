@@ -305,24 +305,14 @@ app.post('/chatrooms/add', function(req, res) {
 
 app.get('/searchUserMessages', function(req, res) {
     var userName = req.query.userName;
-    var result = [];
+
     // Find chatroom messages
-    db.collection('chatMessages').find({"senderName": userName}, {"timestamp": 1, "text": 1, "senderName": 1, "_id": 0}).toArray(function(err, chatMessagesResult) {
+    db.collection('chatMessages').find({"senderName": userName}, {"timestamp": 1, "text": 1, "senderName": 1, "chatroom": 1, "_id": 0}).toArray(function(err, chatMessages) {
         if(err) {
             res.status(500).send({});
             return;
         }
-        result = result.concat(chatMessagesResult);
-    });
-    // Find private messages
-    db.collection('privateMessages').find({"senderName": userName}, {"timestamp": 1, "text": 1, "senderName": 1, "_id": 0}).toArray(function(err, privateMessagesResult) {
-        if(err) {
-            res.status(500).send({});
-            return;
-        }
-        result = result.concat(privateMessagesResult);
-        // Send the search result
-        res.status(200).send(result);
+        res.status(200).send(chatMessages);
     });
 });
 

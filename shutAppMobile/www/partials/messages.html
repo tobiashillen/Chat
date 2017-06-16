@@ -23,7 +23,7 @@
         </div>
       </div>
     </ion-content>
-    <div keyboard-attach class="list light-grey bottommsg message-input-container">
+    <div ng-show="inputMessages.showContainer" keyboard-attach class="list light-grey bottommsg message-input-container">
       <div ng-show="unreadMessages.length>0" class="new-messages-alert">
       Du har olästa meddelanden från {{unreadMessages.length}} användare.
       </div>
@@ -31,14 +31,14 @@
         <label class="item-input-wrapper line-light-grey nopadtop">
           <textarea onkeyup="limitTextarea(this, 5, 255)" msd-elastic maxlength="255" class="line-light-grey message-input-field" rows="5" type="text" placeholder="Skriv ditt meddelande..." ng-model="text.message">
           </textarea>
-
+	  	
         </label>
         <div class="divsend">
           <button class="button ion-ios-arrow-forward iconsend" ng-click="isPrivate ? postPrivateMessage() : postMessage()"></button>
         </div>
-
+	  	
       </div>
-
+  	
     </div>
-
+  	
 </ion-view>

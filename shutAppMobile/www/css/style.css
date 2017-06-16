@@ -113,6 +113,9 @@ form {
   border-color: #52414C;
   color: #ccddcc;
 }
+.shutapp-button-search {
+  background-color: #7c6273;
+}
 .new-message {
   color: #00FE54;
 }
