@@ -776,8 +776,8 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
 
     $scope.searchUser = function() {
         if($rootScope.person.name) {
-            $rootScope.person.name;
-            messageManager.getHistoricMessages($rootScope.person.name.toLowerCase()).then(function(res) {
+            $rootScope.person.name = $rootScope.person.name.toLowerCase();
+            messageManager.getHistoricMessages($rootScope.person.name).then(function(res) {
                 $rootScope.messages = res.data;
             });
             $scope.searchMode = false;
