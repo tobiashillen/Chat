@@ -49,7 +49,7 @@ app.run(function($ionicPlatform, $rootScope, $ionicPopup, $state) {
 app.value('messageAudio', new Audio('sounds/meow.mp3'));
 
 app.factory('mySocket', function(socketFactory) {
-    var myIoSocket = io.connect('http://localhost:3000');
+    var myIoSocket = io.connect('http://shutapp.nu:3000');
     socket = socketFactory({
         ioSocket: myIoSocket
     });
@@ -782,8 +782,8 @@ app.controller('SettingsController', function ($location, $scope, $rootScope, $c
 
   $scope.takePicture = function() {
     navigator.camera.getPicture(onPhotoSuccess, onFail, { quality: 50, encodingType: Camera.EncodingType.JPEG,
-      destinationType: Camera.DestinationType.FILE_URI, sourceType: Camera.PictureSourceType.CAMERA, targetWidth: 200,
-      targetHeight: 200, correctOrientation: true, allowEdit: true, cameraDirection: 1 });
+      destinationType: Camera.DestinationType.DATA_URL, sourceType: Camera.PictureSourceType.CAMERA, targetWidth: 200,
+      targetHeight: 200, allowEdit: true, popoverOptions: CameraPopoverOptions, saveToPhotoAlbum: false, cameraDirection: 1 });
 
     function onPhotoSuccess(imageData) {
       var image = "data:image/jpeg;base64," + imageData;
