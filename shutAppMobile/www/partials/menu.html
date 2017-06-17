@@ -23,10 +23,13 @@
 		<button ng-click="toggleSearchHistory()" class="button-icon ion-ios-search search-button">
 	</div>
 	<div ng-show="searchMode">
-		<input type="text" placeholder="Sök på användare" ng-model="person.name" ng-minlength="3" ng-maxlength="20" required>
-      	<button ng-click="searchUser()">
-			sök
-      	</button>
+  <label class="item item-input">
+    <i class="icon ion-search placeholder-icon"></i>
+    <input type="text" placeholder="Sök på användare" ng-model="person.name" ng-minlength="3" ng-maxlength="20" required>
+  </label>
+  <button class="button button-block shutapp-button-search" ng-click="searchUser()" menu-close>
+      sök
+  </button>
 	</div>
   </div>
   <ion-list>
