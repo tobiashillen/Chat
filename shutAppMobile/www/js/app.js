@@ -205,7 +205,7 @@ app.factory('socketEvents', function ($ionicScrollDelegate, $location, $rootScop
     }
 });
 
-app.factory('stateHandler', function ($rootScope, $timeout, mySocket) {
+app.factory('stateHandler', function ($ionicScrollDelegate, $rootScope, $timeout, mySocket, messageManager, messagesPerLoad) {
     var promise;
     return {
         goIdle: function () {
@@ -216,11 +216,27 @@ app.factory('stateHandler', function ($rootScope, $timeout, mySocket) {
             promise = $timeout(mySocket.disconnect, 30 * 1000);
         },
         goActive: function () {
-            //alert("going active!");
+            alert("going active!");
             console.log("going active");
             $timeout.cancel(promise);
             mySocket.connect();
             mySocket.emit('connected', $rootScope.user);
+            if($rootScope.privateRecipient) {
+                console.log("trying to get private messages");
+                messageManager.getPrivateMessages($rootScope.user.id, $rootScope.privateRecipient.id).then(function(res) {
+                    $rootScope.messages = res.data;
+                    $ionicScrollDelegate.scrollBottom();
+                });
+                messageManager.markReadMessages({ senderId: $rootScope.privateRecipient.id, recipientId: $rootScope.user.id });
+            } else if($rootScope.selectedChatroom) {
+                console.log("trying to get chatroom messages");
+                messageManager.getMessages($rootScope.selectedChatroom, null, messagesPerLoad).then(function(res) {
+                    $rootScope.messages = res.data;
+                    $ionicScrollDelegate.scrollBottom();
+                });
+            } else {
+                console.log("getting messages doesnt seem to be working...");
+            }
         }
     }
 });
@@ -461,9 +477,12 @@ app.controller('MessagesController', function ($ionicPlatform, $ionicPopup, $ion
         $rootScope.isPrivate = false;
     }
     if ($rootScope.isPrivate) {
-        messageManager.getMessages($rootScope.user.id, $rootScope.privateRecipient.id).then(function(res) {
+        messageManager.getPrivateMessages($rootScope.user.id, $rootScope.privateRecipient.id).then(function(res) {
             $rootScope.messages = res.data;
             $ionicScrollDelegate.scrollBottom();
+        });
+        messageManager.markReadMessages({ senderId: $rootScope.privateRecipient.id, recipientId: $rootScope.user.id }).then(function (res) {
+            console.log("marked read messages");
         });
     } else {
         messageManager.getMessages($rootScope.selectedChatroom.id, null, messagesPerLoad).then(function (res) {
@@ -722,6 +741,7 @@ app.controller('MessagesController', function ($ionicPlatform, $ionicPopup, $ion
         $location.path('/messages');
         messageManager.getPrivateMessages($rootScope.user.id, $rootScope.privateRecipient.id).then(function (res) {
             $rootScope.messages = res.data;
+            $ionicScrollDelegate.scrollBottom();
         });
         messageManager.markReadMessages({ senderId: $rootScope.privateRecipient.id, recipientId: $rootScope.user.id }).then(function (res) {
             console.log("marked read messages");
