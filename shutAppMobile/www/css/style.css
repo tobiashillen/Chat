@@ -276,3 +276,15 @@ ion-nav-view {
 .showAsAdmin {
   color: blue;
 }
+.number-of-messages {
+font-family: Raleway;
+color: #00FE54;
+background-color: #52414C;
+padding-left: 3px;
+padding-right: 3px;
+padding-top: 1px;
+padding-bottom: 2px;
+}
+.number-of-messages:empty {
+display: none;
+}
