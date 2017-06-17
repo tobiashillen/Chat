@@ -95,8 +95,8 @@ app.factory('socketEvents', function ($ionicScrollDelegate, $location, $rootScop
     return {
         set: function () {
             mySocket.on('active users', function (arr) {
-                $rootScope.activeUsers = arr;
                 var activeUserIds = arr.map(x => x.id);
+                $rootScope.activeUsers = arr;
                 if (!$rootScope.conversations) {
                     messageManager.getConversations($rootScope.user.id).then(function (response) {
                         //$rootScope.conversations will always hold all the people the user has chatted with. offlineConversations holds those that are offline.
@@ -209,12 +209,15 @@ app.factory('stateHandler', function ($rootScope, $timeout, mySocket) {
     var promise;
     return {
         goIdle: function () {
+            console.log("going idle");
             mySocket.emit('go idle', $rootScope.user);
             mySocket.emit('change badge', $rootScope.user.id);
             //disconnect after 30 seconds away from the app
             promise = $timeout(mySocket.disconnect, 30 * 1000);
         },
         goActive: function () {
+            //alert("going active!");
+            console.log("going active");
             $timeout.cancel(promise);
             mySocket.connect();
             mySocket.emit('connected', $rootScope.user);
@@ -437,6 +440,10 @@ app.controller('MessagesController', function ($ionicPlatform, $ionicPopup, $ion
         return;
     }
 
+    //Handle when the app/phone goes active/inactive
+    $ionicPlatform.on('pause', stateHandler.goIdle);
+    $ionicPlatform.on('resume', stateHandler.goActive);
+
     mySocket.removeAllListeners();
     mySocket.connect();
     socketEvents.set();
@@ -489,10 +496,6 @@ app.controller('MessagesController', function ($ionicPlatform, $ionicPopup, $ion
     $rootScope.status = {
         moreMessages: true
     };
-
-    //Handle when the app/phone goes active/inactive
-    $ionicPlatform.on('pause', stateHandler.goIdle);
-    $ionicPlatform.on('resume', stateHandler.goActive);
 
     $scope.$on("keyboardShowHideEvent", function () {
         $ionicScrollDelegate.scrollBottom();
@@ -730,7 +733,6 @@ app.controller('MessagesController', function ($ionicPlatform, $ionicPopup, $ion
             console.log("I changerecipient, activeUsers: " + $rootScope.activeUsers.map(x => JSON.stringify(x)).toString());
             setNrOfUnreadMessages.set($rootScope.offlineConversations, $rootScope.unreadMessages);
             console.log("I changerecipient, offlineConversations: " + $rootScope.offlineConversations.map(x => JSON.stringify(x)).toString());
-
         }
     };
 
@@ -757,6 +759,22 @@ app.controller('MessagesController', function ($ionicPlatform, $ionicPopup, $ion
             }
         }
     }, true);
+
+    $rootScope.$watchGroup(['privateRecipient', 'selectedChatroom', 'activeUsers'], function() {
+        if($rootScope.privateRecipient) {
+            var activeUserIds = $rootScope.activeUsers.map(a=>a.id);
+            if(activeUserIds.includes($rootScope.privateRecipient.id)) {
+                $scope.isRecipientIdle = $rootScope.activeUsers[activeUserIds.indexOf($rootScope.privateRecipient.id)].isIdle ? "(idle)" : "";
+                $scope.isRecipientOffline = "";
+            } else {
+                $scope.isRecipientOffline = "(offline)";
+                $scope.isRecipientIdle = "";
+            }
+        } else {
+            $scope.isRecipientOffline = "";
+            $scope.isRecipientIdle = "";
+        }
+    });
 });
 
 app.controller('SettingsController', function ($cordovaFile, $location, $rootScope, $scope, autoLoginManager, mySocket, toaster, userManager) {

@@ -6,7 +6,7 @@
 
   <ion-side-menu-content>
     <ion-nav-bar class="bar-royal" align-title="center">
-      <ion-nav-title>{{messagesBarTitle}}</ion-nav-title>
+      <ion-nav-title>{{messagesBarTitle}} {{isRecipientIdle}}{{isRecipientOffline}}</ion-nav-title>
       <ion-nav-buttons side="left">
         <button menu-toggle="left" class="button button-icon icon ion-navicon" ng-click="toggleMessageInputContainer()">
         </button>
