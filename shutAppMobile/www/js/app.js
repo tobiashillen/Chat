@@ -66,7 +66,7 @@ app.factory('autoLoginManager', function ($localStorage) {
 app.factory('mySocket', function (socketFactory) {
     //var myIoSocket = io.connect('http://localhost:3000');
     //var myIoSocket = io.connect('http://shutapp.nu:3000');
-    //var myIoSocket = io.connect('http://192.168.1.xx:3000');
+    //var myIoSocket = io.connect('http://192.168.1.3:3000');
     var myIoSocket = io.connect('http://172.104.137.232:3000');
     socket = socketFactory({
         ioSocket: myIoSocket
@@ -140,7 +140,7 @@ app.factory('socketEvents', function ($ionicScrollDelegate, $location, $rootScop
                 $rootScope.statusMessage = msg;
             });
             mySocket.on('edited message', function () {
-                messageManager.getMessages($rootScope.selectedChatroom.id).then(function (res) {
+                messageManager.getMessages($rootScope.selectedChatroom.id, null, $rootScope.messages.length).then(function (res) {
                     $rootScope.messages = res.data;
                 });
             });
@@ -497,7 +497,7 @@ app.controller('MessagesController', function ($ionicPlatform, $ionicPopup, $ion
     $scope.$on("keyboardShowHideEvent", function () {
         $ionicScrollDelegate.scrollBottom();
     });
-    
+
     //goes to the right private chatroom when the app is opened from a push notification
     $scope.$on('cloud:push:notification', function (event, data) {
         if (data.message) {
@@ -567,11 +567,11 @@ app.controller('MessagesController', function ($ionicPlatform, $ionicPopup, $ion
                 if (updatedMessage) {
                     message.text = updatedMessage;
                     messageManager.updateMessage(message);
-                    popup.close();
                 } else {
                     console.log('Texten uppfyller inte kraven för att posta.')
                     toaster.toast('Texten uppfyller inte kraven för att posta.', 'short', 'bottom');
                 }
+                popup.close();
             };
 
             $scope.cancelMessage = function () {
@@ -654,8 +654,10 @@ app.controller('MessagesController', function ($ionicPlatform, $ionicPopup, $ion
         if ($rootScope.user.admin) newMessage.admin = true;
         //Send message to the current chatroom
         if (newMessage.text != "") {
-            mySocket.emit('chatroom message', newMessage);
-            messageManager.postMessages(newMessage);
+            messageManager.postMessages(newMessage).then(function(res) {
+              console.log(res.data);
+              mySocket.emit('chatroom message', res.data);
+            });
             $scope.text.message = "";
             $ionicScrollDelegate.scrollBottom();
         } else {

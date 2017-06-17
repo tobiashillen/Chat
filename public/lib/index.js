@@ -1,7 +1,7 @@
 var lib = angular.module('lib', []);
 //var serverUrl = 'http://localhost:3000';
 //var serverUrl = 'http://shutapp.nu:3000';
-//var serverUrl = 'http://172.104.137.232:3000';
+//var serverUrl = 'http://192.168.1.3:3000';
 var serverUrl = 'http://172.104.137.232:3000';
 
 lib.factory('userManager', function ($http) {

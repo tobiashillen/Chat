@@ -75,12 +75,13 @@ app.use(session({
 app.post('/messages', function(req, res) {
     var newMessage = req.body;
     newMessage.timestamp = new Date();
-    db.collection('chatMessages').insert(newMessage).then(function(result) {
+    db.collection('chatMessages').insertOne(newMessage).then(function(result) {
         //201 is a "created" status code
+        console.log(result);
         if(result) {
-            res.status(201).send({});
+            res.status(201).send(result.ops[0]);
         } else {
-            res.status(400).send({});
+            res.status(400).send();
         }
     });
 });
