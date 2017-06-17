@@ -140,7 +140,7 @@ app.get('/messages', function(req, res) {
         }
     }
 
-    var pageSize = 20;
+    var pageSize = req.query.numberOfMessages ? req.query.numberOfMessages : 0;
     db.collection(collection).find(findObject).sort([['_id', -1]]).limit(pageSize).toArray(function(err, result) {
         if(err) {
             res.status(500).send({});

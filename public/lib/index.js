@@ -1,5 +1,5 @@
 var lib = angular.module('lib', []);
-var serverUrl = 'http://shutapp.nu:3000';
+var serverUrl = 'http://172.104.137.232:3000';
 
 lib.factory('userManager', function ($http) {
     var userManager = {};
@@ -44,10 +44,13 @@ lib.factory('messageManager', function ($http) {
     messageManager.removeChatroom = function (chatroomId) {
         return $http.post(serverUrl +  '/chatrooms/remove', chatroomId);
     };
-    messageManager.getMessages = function (chatroomId, lastMessageId) {
+    messageManager.getMessages = function (chatroomId, lastMessageId, numberOfMessages) {
       var request = serverUrl + '/messages?chatroom=' + chatroomId;
         if(lastMessageId) {
           request += '&lastMessageId=' + lastMessageId;
+        }
+        if(numberOfMessages) {
+          request += '&numberOfMessages=' + numberOfMessages;
         }
         return $http.get(request);
     };

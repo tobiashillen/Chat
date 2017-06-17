@@ -49,7 +49,7 @@ app.run(function($ionicPlatform, $rootScope, $ionicPopup, $state) {
 app.value('messageAudio', new Audio('sounds/meow.mp3'));
 
 app.factory('mySocket', function(socketFactory) {
-    var myIoSocket = io.connect('http://shutapp.nu:3000');
+    var myIoSocket = io.connect('http://172.104.137.232:3000');
     socket = socketFactory({
         ioSocket: myIoSocket
     });
@@ -284,7 +284,7 @@ app.controller('MessagesController', function ($rootScope, $scope, $ionicPlatfor
       var lastMessage = $rootScope.messages.reduce(function (a, b) { return a.timestamp < b.timestamp ? a : b; });
       console.log(lastMessage._id);
 
-      messageManager.getMessages($rootScope.selectedChatroom.id, lastMessage._id).then(function(res) {
+      messageManager.getMessages($rootScope.selectedChatroom.id, lastMessage._id, 20).then(function(res) {
         $scope.doScrollTop = true;
         console.log(res.data.length);
         $rootScope.status.moreMessages = (res.data.length >= 20) ? true : false;
@@ -786,16 +786,16 @@ app.controller('LeftSideController', function ($rootScope, $location, $timeout, 
             $scope.searchMode = true;
         }
     };
-	
+
   	$rootScope.person = {};
-	
+
   	$scope.searchUser = function() {
 		if($rootScope.person.name) {
 			$rootScope.person.name;
 			messageManager.getHistoricMessages($rootScope.person.name).then(function(res) {
 				$rootScope.messages = res.data;
 			 	console.log(res.data);
-			});	
+			});
 			$scope.searchMode = false;
 		} else {
 			$scope.searchMode = true;
