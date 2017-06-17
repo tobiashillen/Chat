@@ -8,7 +8,7 @@
 			<p>{{historyMessage.text}}</p>
           <div class="user-image-frame">
             <div class="user-image-container">
-              <img ng-if="!message.hasImage" ng-show="!message.hasImage" src="../img/person-placeholder.jpg" class="message-image">
+              <img ng-if="!message.hasImage" ng-show="!message.hasImage" src="img/person-placeholder.jpg" class="message-image">
               <img ng-if="message.hasImage" ng-show="message.hasImage" ng-init="getMessageImage(message)" ng-src="{{message.senderImage}}" class="message-image">
             </div>
           </div>
