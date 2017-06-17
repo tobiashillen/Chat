@@ -77,7 +77,6 @@ app.post('/messages', function(req, res) {
     newMessage.timestamp = new Date();
     db.collection('chatMessages').insertOne(newMessage).then(function(result) {
         //201 is a "created" status code
-        console.log(result);
         if(result) {
             res.status(201).send(result.ops[0]);
         } else {

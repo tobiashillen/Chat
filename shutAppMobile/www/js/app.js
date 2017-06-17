@@ -567,11 +567,11 @@ app.controller('MessagesController', function ($ionicPlatform, $ionicPopup, $ion
                 if (updatedMessage) {
                     message.text = updatedMessage;
                     messageManager.updateMessage(message);
+                    popup.close();
                 } else {
                     console.log('Texten uppfyller inte kraven för att posta.')
                     toaster.toast('Texten uppfyller inte kraven för att posta.', 'short', 'bottom');
                 }
-                popup.close();
             };
 
             $scope.cancelMessage = function () {
