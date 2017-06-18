@@ -10,6 +10,18 @@ app.run(function ($ionicPlatform, $ionicPopup, $rootScope, $state, stateHandler)
     //Handle when the app/phone goes active/inactive
     $ionicPlatform.on('pause', stateHandler.goIdle);
     $ionicPlatform.on('resume', stateHandler.goActive);
+    //If you press the hardware backbutton on android, shows a dialog box
+    //if you are really sure about exiting.
+    $ionicPlatform.registerBackButtonAction(function (event) {
+        if ($state.current.name == 'messages') {
+            $ionicPopup.confirm({
+                title: 'Avsluta ShutApp',
+                template: 'Är du säker på att du vill avsluta?'
+            }).then(function (res) {
+                if (res) ionic.Platform.exitApp();
+            });
+        }
+    }, 100);
     $ionicPlatform.ready(function () {
         $rootScope.android = ionic.Platform.isAndroid();
         if (window.cordova && window.cordova.plugins.Keyboard) {
@@ -33,19 +45,6 @@ app.run(function ($ionicPlatform, $ionicPopup, $rootScope, $state, stateHandler)
         function keyboardShowHideHandler(e) {
             $rootScope.$broadcast("keyboardShowHideEvent");
         }
-
-        //If you press the hardware backbutton on android, shows a dialog box
-        //if you are really sure about exiting.
-        $ionicPlatform.registerBackButtonAction(function (event) {
-            if ($state.current.name == 'messages') {
-                $ionicPopup.confirm({
-                    title: 'Avsluta ShutApp',
-                    template: 'Är du säker på att du vill avsluta?'
-                }).then(function (res) {
-                    if (res) ionic.Platform.exitApp();
-                });
-            }
-        }, 100);
     });
 });
 
