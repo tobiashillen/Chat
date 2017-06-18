@@ -393,6 +393,8 @@ app.controller('LeftSideController', function ($ionicScrollDelegate, $ionicSideM
                 $rootScope.messages = res.data;
             });
             $scope.searchMode = false;
+            $rootScope.privateRecipient = undefined;
+            $rootScope.selectedChatroom = undefined;
             $rootScope.messagesBarTitle = $rootScope.person.name;
             $rootScope.inputMessages.showContainer = false;
         } else {
