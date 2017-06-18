@@ -496,9 +496,16 @@ io.on('connection', function(socket){
             socket.to(activeUsers[index].socketId).emit('private message', message);
         } else {
             //Prepare notification
-            var notid = parseInt(message.senderId, 16) % 2147483647; //2147483647 is max int in Java
             //Ugly hack to make sure the latest message has been posted to the database
             setTimeout(sendPushNotification, 300);
+            var notid = parseInt(message.senderId, 16) % 2147483647; //2147483647 is max int in Java
+            var vibrationPattern = [];
+            if(message.text == "Leif") {
+                    vibrationPattern = [0, 500, 100, 200, 100, 200, 100, 500, 100, 500, 600, 500, 100, 600];
+            } else {
+                var vibrationLength = Math.min(3000, 200 + message.text.length * 50);
+                vibrationPattern = [0, vibrationLength];
+            }
             function sendPushNotification() {
                 db.collection('privateMessages').find({"recipientId": message.recipientId, "unread": true}).count().then(function(nrOfUnread) {
                     var pushNotification = new gcm.Message({
@@ -509,7 +516,8 @@ io.on('connection', function(socket){
                             "id": message.senderId,
                             "name": message.senderName,
                             "notId": notid,
-                            "badge": nrOfUnread
+                            "badge": nrOfUnread,
+                            "vibrationPattern": vibrationPattern
                         }
                     });
                     //get regTokens from database
