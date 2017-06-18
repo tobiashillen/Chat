@@ -6,7 +6,10 @@
 
 var app = angular.module('starter', ['angular-smilies', 'btford.socket-io', 'ionic', 'ionic.cloud', 'lib', 'monospaced.elastic', 'ngCordova', 'ngSanitize', 'ngStorage']);
 
-app.run(function ($ionicPlatform, $ionicPopup, $rootScope, $state) {
+app.run(function ($ionicPlatform, $ionicPopup, $rootScope, $state, stateHandler) {
+    //Handle when the app/phone goes active/inactive
+    $ionicPlatform.on('pause', stateHandler.goIdle);
+    $ionicPlatform.on('resume', stateHandler.goActive);
     $ionicPlatform.ready(function () {
         $rootScope.android = ionic.Platform.isAndroid();
         if (window.cordova && window.cordova.plugins.Keyboard) {
@@ -216,21 +219,18 @@ app.factory('stateHandler', function ($ionicScrollDelegate, $rootScope, $timeout
             promise = $timeout(mySocket.disconnect, 30 * 1000);
         },
         goActive: function () {
-            alert("going active!");
             console.log("going active");
             $timeout.cancel(promise);
             mySocket.connect();
             mySocket.emit('connected', $rootScope.user);
             if($rootScope.privateRecipient) {
-                console.log("trying to get private messages");
                 messageManager.getPrivateMessages($rootScope.user.id, $rootScope.privateRecipient.id).then(function(res) {
                     $rootScope.messages = res.data;
                     $ionicScrollDelegate.scrollBottom();
                 });
                 messageManager.markReadMessages({ senderId: $rootScope.privateRecipient.id, recipientId: $rootScope.user.id });
             } else if($rootScope.selectedChatroom) {
-                console.log("trying to get chatroom messages");
-                messageManager.getMessages($rootScope.selectedChatroom, null, messagesPerLoad).then(function(res) {
+                messageManager.getMessages($rootScope.selectedChatroom.id, null, messagesPerLoad).then(function(res) {
                     $rootScope.messages = res.data;
                     $ionicScrollDelegate.scrollBottom();
                 });
@@ -455,11 +455,6 @@ app.controller('MessagesController', function ($ionicPlatform, $ionicPopup, $ion
         $location.path('/login');
         return;
     }
-
-    //Handle when the app/phone goes active/inactive
-    $ionicPlatform.on('pause', stateHandler.goIdle);
-    $ionicPlatform.on('resume', stateHandler.goActive);
-
     mySocket.removeAllListeners();
     mySocket.connect();
     socketEvents.set();
