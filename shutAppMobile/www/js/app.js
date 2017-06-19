@@ -183,7 +183,7 @@ app.factory('socketEvents', function ($ionicScrollDelegate, $location, $rootScop
             });
             mySocket.on('refresh chatroom', function (chatroom) {
                 messageManager.getChatrooms().then(function (response) {
-                    $scope.chatrooms = response.data;
+                    $rootScope.chatrooms = response.data;
                 });
             });
             //senderArray contains objects with senderId and nrOfMessages
@@ -323,7 +323,7 @@ app.controller('LeftSideController', function ($ionicScrollDelegate, $ionicSideM
     $scope.newChatroom = {};
 
     messageManager.getChatrooms().then(function (response) {
-        $scope.chatrooms = response.data;
+        $rootScope.chatrooms = response.data;
     });
 
     $scope.$on("keyboardShowHideEvent", function () {
