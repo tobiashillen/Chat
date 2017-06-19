@@ -518,7 +518,7 @@ app.controller('MessagesController', function ($ionicPlatform, $ionicPopup, $ion
 
     //goes to the right private chatroom when the app is opened from a push notification
     $scope.$on('cloud:push:notification', function (event, data) {
-        if (data.message) {
+        if (data.message && data.message.raw && data.message.raw.additionalData && data.message.raw.additionalData.id) {
             var msg = data.message;
             var recipient = { id: msg.raw.additionalData.id, name: msg.raw.additionalData.name };
             $rootScope.changeRecipient(recipient);
