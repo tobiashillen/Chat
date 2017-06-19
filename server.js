@@ -307,7 +307,7 @@ app.get('/searchUserMessages', function(req, res) {
     var userName = req.query.userName;
 
     // Find chatroom messages
-    db.collection('chatMessages').find({"senderName": userName}, {"timestamp": 1, "text": 1, "senderName": 1, "_id": 0}).toArray(function(err, chatMessages) {
+    db.collection('chatMessages').find({"senderName": userName}, {"timestamp": 1, "text": 1, "senderName": 1, "_id": 0, "hasImage": 1}).toArray(function(err, chatMessages) {
         if(err) {
             res.status(500).send({});
             return;

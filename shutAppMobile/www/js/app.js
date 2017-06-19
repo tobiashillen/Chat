@@ -390,6 +390,7 @@ app.controller('LeftSideController', function ($ionicScrollDelegate, $ionicSideM
     $scope.searchUser = function () {
         if ($rootScope.person.name) {
             messageManager.getHistoricMessages($rootScope.person.name.toLowerCase()).then(function (res) {
+                console.log("Data: ", res.data);
                 $rootScope.messages = res.data;
             });
             $scope.searchMode = false;
