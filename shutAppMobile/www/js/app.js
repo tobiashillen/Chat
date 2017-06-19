@@ -635,7 +635,7 @@ app.controller('MessagesController', function ($ionicPlatform, $ionicPopup, $ion
                 }).then(function (res) {
                     if (res.status == 200) {
                         console.log(targetUser.name + " deleted!");
-                        toaster.toast(targetUser.name + ' är nu bortagen!', 'long', 'bottom');
+                        toaster.toast(targetUser.name + ' är nu borttagen!', 'long', 'bottom');
                     }
                 }, function (res) {
                     switch (res.status) {
