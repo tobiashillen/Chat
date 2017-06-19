@@ -150,7 +150,7 @@ app.get('/messages', function(req, res) {
 });
 
 // Save users profile picture on disc. See multer.discStorage
-/*app.post('/upload', upload.single('avatar'), function (req, res, next) {
+app.post('/upload', upload.single('avatar'), function (req, res, next) {
     //save file path to user collection in database
     db.collection('users').findOneAndUpdate(
         {"_id": ObjectID(req.body.userid) },
@@ -159,7 +159,7 @@ app.get('/messages', function(req, res) {
         res.status(201).send();
     });
     res.status(200).send();
-});*/
+});
 
 //Get list of users with which we have had a conversation
 app.get('/conversations', function(req, res) {
@@ -264,7 +264,7 @@ app.post('/upload', function(req, res) {
     res.status(200).send();
 });
 
-/*app.get('/picture/:userId', function(req, res) {
+app.get('/picture/:userId', function(req, res) {
     var filePath = __dirname + "/uploads/" + req.params.userId + ".jpg";
     var base64 = fileToBase64(filePath);
 
@@ -276,7 +276,7 @@ app.post('/upload', function(req, res) {
     }
 
     res.status(200).send("data:image/jpeg;base64," + base64);
-});*/
+});
 
 app.post('/chatrooms/add', function(req, res) {
     if(req.body.name === undefined || req.body.name.length < 3 || req.body.name.length > 15) return res.status(406).send();
