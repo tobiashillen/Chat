@@ -8,8 +8,9 @@
 			<p>{{historyMessage.text}}</p>
           <div class="user-image-frame">
             <div class="user-image-container">
+              <span style="display: none;">{{::getMessageImage(message)}}</span>
               <img ng-if="!message.hasImage" ng-show="!message.hasImage" src="img/person-placeholder.jpg" class="message-image">
-              <img ng-if="message.hasImage" ng-show="message.hasImage" ng-init="getMessageImage(message)" ng-src="{{message.senderImage}}" class="message-image">
+              <img ng-if="message.hasImage" ng-show="message.hasImage" ng-src="{{$root.senderImages[message.senderId]}}" class="message-image">
             </div>
           </div>
           <div class="message-content">
@@ -31,14 +32,14 @@
         <label class="item-input-wrapper line-light-grey nopadtop">
           <textarea onkeyup="limitTextarea(this, 5, 255)" msd-elastic maxlength="255" class="line-light-grey message-input-field" rows="5" type="text" placeholder="Skriv ditt meddelande..." ng-model="text.message">
           </textarea>
-	  	
+
         </label>
         <div class="divsend">
           <button class="button ion-ios-arrow-forward iconsend" ng-click="isPrivate ? postPrivateMessage() : postMessage()"></button>
         </div>
-	  	
+
       </div>
-  	
+
     </div>
-  	
+
 </ion-view>

@@ -366,6 +366,7 @@ app.controller('LeftSideController', function ($ionicScrollDelegate, $ionicSideM
     $scope.changeChatroom = function (index) {
         $rootScope.isPrivate = false;
         $rootScope.selected = index;
+        $rootScope.messages = [];
         $rootScope.status.moreMessages = true;
         //Leave chatroom if already in one.
         if ($rootScope.selectedChatroom) {
@@ -725,6 +726,7 @@ app.controller('MessagesController', function ($ionicPlatform, $ionicPopup, $ion
             return;
         }
         $rootScope.isPrivate = true;
+        $rootScope.messages = [];
         $rootScope.selected = recipient.id;
         $rootScope.privateRecipient = recipient;
         if ($rootScope.selectedChatroom) {
@@ -754,10 +756,15 @@ app.controller('MessagesController', function ($ionicPlatform, $ionicPopup, $ion
         }
     };
 
+    $rootScope.senderImages = {};
+
     $rootScope.getMessageImage = function (message) {
-        userManager.getPicture(message.senderId).then(function (res) {
-            message.senderImage = res.data;
-        });
+        if (!$rootScope.senderImages[message.senderId]) {
+            $rootScope.senderImages[message.senderId] = {};
+            return userManager.getPicture(message.senderId).then(function (res) {
+                $rootScope.senderImages[message.senderId] = res.data;
+            });
+        }
     };
 
     $rootScope.toggleLeft = function () {
