@@ -93,7 +93,7 @@ app.factory('setNrOfUnreadMessages', function () {
     }
 });
 
-app.factory('socketEvents', function ($ionicScrollDelegate, $location, $rootScope, messageAudio, messageManager, mySocket, setNrOfUnreadMessages, autoLoginManager) {
+app.factory('socketEvents', function ($ionicScrollDelegate, $location, $rootScope, messageAudio, messageManager, mySocket, setNrOfUnreadMessages, autoLoginManager, toaster) {
     return {
         set: function () {
             mySocket.on('active users', function (arr) {
