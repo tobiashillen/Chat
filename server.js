@@ -150,7 +150,7 @@ app.get('/messages', function(req, res) {
 });
 
 // Save users profile picture on disc. See multer.discStorage
-app.post('/upload', upload.single('avatar'), function (req, res, next) {
+/*app.post('/upload', upload.single('avatar'), function (req, res, next) {
     //save file path to user collection in database
     db.collection('users').findOneAndUpdate(
         {"_id": ObjectID(req.body.userid) },
@@ -159,7 +159,7 @@ app.post('/upload', upload.single('avatar'), function (req, res, next) {
         res.status(201).send();
     });
     res.status(200).send();
-});
+});*/
 
 //Get list of users with which we have had a conversation
 app.get('/conversations', function(req, res) {
