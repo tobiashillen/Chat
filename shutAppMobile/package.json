@@ -25,6 +25,7 @@
         "mongodb": "^2.2.26",
         "node-gcm": "^0.14.6",
         "phonegap-plugin-push": "^1.10.5",
+        "platform": "^1.3.4",
         "socket.io": "^1.7.4"
     },
     "devDependencies": {
