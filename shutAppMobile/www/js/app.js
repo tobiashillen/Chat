@@ -93,7 +93,7 @@ app.factory('setNrOfUnreadMessages', function () {
     }
 });
 
-app.factory('socketEvents', function ($ionicScrollDelegate, $location, $rootScope, messageAudio, messageManager, mySocket, setNrOfUnreadMessages, autoLoginManager, toaster) {
+app.factory('socketEvents', function ($ionicScrollDelegate, $location, $rootScope, autoLoginManager, messageAudio, messageManager, mySocket, setNrOfUnreadMessages, toaster) {
     return {
         set: function () {
             mySocket.on('active users', function (arr) {
@@ -211,30 +211,34 @@ app.factory('stateHandler', function ($ionicScrollDelegate, $rootScope, $timeout
     var promise;
     return {
         goIdle: function () {
-            console.log("going idle");
-            mySocket.emit('go idle', $rootScope.user);
-            mySocket.emit('change badge', $rootScope.user.id);
-            //disconnect after 30 seconds away from the app
-            promise = $timeout(mySocket.disconnect, 30 * 1000);
+            if($rootScope.user) {
+                console.log("going idle");
+                mySocket.emit('go idle', $rootScope.user);
+                mySocket.emit('change badge', $rootScope.user.id);
+                //disconnect after 30 seconds away from the app
+                promise = $timeout(mySocket.disconnect, 30 * 1000);
+            }
         },
         goActive: function () {
-            console.log("going active");
-            $timeout.cancel(promise);
-            mySocket.connect();
-            mySocket.emit('connected', $rootScope.user);
-            if($rootScope.privateRecipient) {
-                messageManager.getPrivateMessages($rootScope.user.id, $rootScope.privateRecipient.id).then(function(res) {
-                    $rootScope.messages = res.data;
-                    $ionicScrollDelegate.scrollBottom();
-                });
-                messageManager.markReadMessages({ senderId: $rootScope.privateRecipient.id, recipientId: $rootScope.user.id });
-            } else if($rootScope.selectedChatroom) {
-                messageManager.getMessages($rootScope.selectedChatroom.id, null, messagesPerLoad).then(function(res) {
-                    $rootScope.messages = res.data;
-                    $ionicScrollDelegate.scrollBottom();
-                });
-            } else {
-                console.log("getting messages doesnt seem to be working...");
+            if($rootScope.user) {
+                console.log("going active");
+                $timeout.cancel(promise);
+                mySocket.connect();
+                mySocket.emit('connected', $rootScope.user);
+                if($rootScope.privateRecipient) {
+                    messageManager.getPrivateMessages($rootScope.user.id, $rootScope.privateRecipient.id).then(function(res) {
+                        $rootScope.messages = res.data;
+                        $ionicScrollDelegate.scrollBottom();
+                    });
+                    messageManager.markReadMessages({ senderId: $rootScope.privateRecipient.id, recipientId: $rootScope.user.id });
+                } else if($rootScope.selectedChatroom) {
+                    messageManager.getMessages($rootScope.selectedChatroom.id, null, messagesPerLoad).then(function(res) {
+                        $rootScope.messages = res.data;
+                        $ionicScrollDelegate.scrollBottom();
+                    });
+                } else {
+                    console.log("getting messages doesnt seem to be working...");
+                }
             }
         }
     }
@@ -314,7 +318,7 @@ function limitTextarea(textarea, maxLines, maxChar) {
     }
 }
 
-app.controller('LeftSideController', function ($ionicScrollDelegate, $ionicSideMenuDelegate, $location, $rootScope, $scope, $timeout, messageManager, messagesPerLoad, mySocket, setNrOfUnreadMessages, toaster) {
+app.controller('LeftSideController', function ($ionicScrollDelegate, $ionicSideMenuDelegate, $location, $rootScope, $scope, $timeout, messageManager, messagesPerLoad, mySocket, setNrOfUnreadMessages, socketEvents, toaster) {
     if (!$rootScope.user) {
         console.log("$rootScope.user is undefined, but WHYYY?!?!");
         $location.path("/");
@@ -803,7 +807,7 @@ app.controller('MessagesController', function ($ionicPlatform, $ionicPopup, $ion
     });
 });
 
-app.controller('SettingsController', function ($cordovaFile, $location, $rootScope, $scope, autoLoginManager, mySocket, toaster, userManager) {
+app.controller('SettingsController', function ($cordovaFile, $location, $rootScope, $scope, autoLoginManager, mySocket, socketEvents, toaster, userManager) {
     $scope.changeUsername = function (newUsername) {
         if (newUsername) {
             userManager.updateUsername({
@@ -848,6 +852,7 @@ app.controller('SettingsController', function ($cordovaFile, $location, $rootSco
         $rootScope.offlineConversations = undefined;
         $rootScope.activeUsers = undefined;
         $rootScope.messages = undefined;
+        mySocket.removeAllListeners();
         mySocket.disconnect();
         autoLoginManager.removeUser();
         $location.path('/login');
