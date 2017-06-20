@@ -9,7 +9,7 @@ plugins
 shutAppMobile/www/lib/angular*
 shutAppMobile/www/dist
 ngCordova
-shutAppMobile/config.xml
+# shutAppMobile/config.xml
 ngstorage
 uploads
 
